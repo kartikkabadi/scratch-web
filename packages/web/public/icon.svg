@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Scratch Web">
+  <rect width="512" height="512" rx="112" fill="#161413"/>
+  <path d="M160 116h152l64 64v216H160z" fill="#f7f2e8"/>
+  <path d="M312 116v64h64" fill="#ded6ca"/>
+  <path d="M206 245h100M206 294h100M206 343h68" stroke="#161413" stroke-width="22" stroke-linecap="round"/>
+</svg>

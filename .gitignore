@@ -1,0 +1,26 @@
+.DS_Store
+
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+dist/
+build/
+coverage/
+*.tsbuildinfo
+
+# Environment and local config
+.env
+.env.*
+!.env.example
+
+# Scratch Web local runtime data
+.scratch-web/
+logs/
+backups/
+run/
+
+# Local upstream reference clone
+reference/scratch/
+

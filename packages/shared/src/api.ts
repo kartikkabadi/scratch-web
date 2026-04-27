@@ -1,0 +1,36 @@
+export const SCRATCH_COMPATIBLE_OPERATIONS = [
+  "getNotesFolder",
+  "setNotesFolder",
+  "listNotes",
+  "readNote",
+  "saveNote",
+  "deleteNote",
+  "createNote",
+  "listFolders",
+  "createFolder",
+  "deleteFolder",
+  "renameFolder",
+  "moveNote",
+  "moveFolder",
+  "duplicateNote",
+  "getSettings",
+  "updateSettings",
+  "searchNotes",
+  "startFileWatcher",
+  "subscribeEvents",
+  "getGitAvailability",
+  "getGitStatus",
+  "initGit",
+  "commitGit",
+  "pushGit",
+  "fetchGit",
+  "pullGit",
+  "syncGit",
+  "setGitRemote",
+  "pushGitUpstream",
+  "importAsset",
+  "readAsset"
+] as const;
+
+export type ScratchCompatibleOperation =
+  (typeof SCRATCH_COMPATIBLE_OPERATIONS)[number];

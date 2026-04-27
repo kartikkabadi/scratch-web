@@ -1,0 +1,34 @@
+# Scratch Web Agent Entry Point
+
+Scratch Web is an experimental, unofficial web companion for Scratch:
+https://github.com/erictli/scratch
+
+Before helping with setup or development, read:
+
+- `SEED.md`
+- `docs/AGENT_SETUP.md`
+- `docs/SECURITY_AND_PRIVACY.md`
+- `docs/ARCHITECTURE.md`
+- `docs/API.md`
+- `docs/ROADMAP.md`
+
+For reopened M3/full Scratch parity work, also read:
+
+- `docs/SCRATCH_PARITY_INVENTORY.md`
+- `docs/FRONTEND_OPENCODE_BRIEF.md`
+- `docs/m3a-screenshots/`
+
+Important boundaries:
+
+- Do not implement frontend/UI/UX directly unless you are the delegated OpenCode
+  frontend agent following `docs/FRONTEND_OPENCODE_BRIEF.md`.
+- Do not let the old MVP M3 scope override reopened M3 parity scope.
+- Do not fake missing backend APIs for frontend parity work; report the API gap.
+- Do not expose Scratch Web publicly.
+- Do not enable Tailscale Funnel by default.
+- Do not log, paste, or transmit private note content unnecessarily.
+- Do not install the LaunchAgent for iCloud Drive Scratch folders unless the
+  user is deliberately testing `--allow-icloud`; use `scratch-web start` for the
+  current login session instead.
+- Ask before installing dependencies, using sudo, configuring Tailscale, or
+  modifying LaunchAgents.

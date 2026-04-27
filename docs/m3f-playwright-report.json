@@ -1,0 +1,136 @@
+{
+  "baseUrl": "http://127.0.0.1:47841",
+  "generatedAt": "2026-04-27T12:00:47.702Z",
+  "results": [
+    {
+      "name": "desktop opens note",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "desktop image import control visible",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "desktop no horizontal overflow",
+      "ok": true,
+      "detail": "overflow=0"
+    },
+    {
+      "name": "desktop mermaid readable",
+      "ok": true,
+      "detail": "text=2 blackNodes=0"
+    },
+    {
+      "name": "desktop command palette opens",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "desktop find toolbar opens",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "desktop source mode",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "android-chrome opens note",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "android-chrome image import control visible",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "android-chrome no horizontal overflow",
+      "ok": true,
+      "detail": "overflow=0"
+    },
+    {
+      "name": "android-chrome mermaid readable",
+      "ok": true,
+      "detail": "text=2 blackNodes=0"
+    },
+    {
+      "name": "android-chrome command palette opens",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "android-chrome find toolbar opens",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "android-chrome source mode",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "iphone-safari opens note",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "iphone-safari image import control visible",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "iphone-safari no horizontal overflow",
+      "ok": true,
+      "detail": "overflow=0"
+    },
+    {
+      "name": "iphone-safari mermaid readable",
+      "ok": true,
+      "detail": "text=2 blackNodes=0"
+    },
+    {
+      "name": "iphone-safari command palette opens",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "iphone-safari find toolbar opens",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "iphone-safari source mode",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "mobile settings opens by touch",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "mobile settings Integrations tab",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "mobile settings Appearance tab",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "mobile settings Shortcuts tab",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "mobile settings About tab",
+      "ok": true,
+      "detail": ""
+    }
+  ]
+}
