@@ -191,7 +191,7 @@ function IntegrationsSettings({ settings, onChange, setError }: { settings: Sett
       <Section title="Access">
         <Panel>
           <div className="settings-panel-title">Passcode / auth</div>
-          <Muted>Optional app auth is configured by the local setup CLI. Tailscale keeps Scratch Web private to your Tailnet; enable a passcode if the Tailnet or devices are shared.</Muted>
+          <Muted>App-level passcode auth is not implemented in this beta. Keep Scratch Web on a private Tailnet you control; avoid shared Tailnets or shared devices until app auth ships.</Muted>
         </Panel>
       </Section>
 

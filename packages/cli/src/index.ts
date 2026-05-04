@@ -624,12 +624,16 @@ function serverEntryPath(): string {
 }
 
 function serverEnv(config: LocalConfig): NodeJS.ProcessEnv {
+  const allowedOrigins = [config.tailnetUrl, process.env.SCRATCH_WEB_ALLOWED_ORIGINS]
+    .filter((origin): origin is string => Boolean(origin))
+    .join(",");
   return {
     ...process.env,
     SCRATCH_WEB_NOTES_ROOT: config.notesFolder ?? "",
     SCRATCH_WEB_HOST: config.host,
     SCRATCH_WEB_PORT: String(config.port),
-    SCRATCH_WEB_HOME: rootDir
+    SCRATCH_WEB_HOME: rootDir,
+    SCRATCH_WEB_ALLOWED_ORIGINS: allowedOrigins
   };
 }
 
@@ -852,7 +856,7 @@ function printFriendlyStatus(status: ServiceStatus): void {
   console.log(`Notes folder:      ${status.notesFolder ?? "not configured"}`);
   console.log(`Local URL:         ${status.localUrl ?? "not available"}`);
   console.log(`Tailnet URL:       ${status.tailnetUrl ?? "not configured yet"}`);
-  console.log(`Auth enabled:      ${yesNo(status.authEnabled)}`);
+  console.log(`App auth:          ${status.authEnabled ? "configured, not enforced in beta" : "not implemented in beta"}`);
   console.log(`Tailscale:         ${status.tailscaleInstalled ? status.tailscaleVersion ?? "installed" : "not installed"}`);
   console.log(`Tailscale login:   ${yesNo(status.tailscaleLoggedIn)}`);
   console.log(`Tailscale Serve:   ${yesNo(status.tailscaleServeConfigured)}`);

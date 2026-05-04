@@ -95,7 +95,7 @@ Realtime uses SSE.
 
 - `GET /api/events` -> `text/event-stream`
 
-It enforces the same origin/auth policy as HTTP routes. The first event is a
+It enforces the same origin policy as HTTP routes. The first event is a
 `service.status.changed` ready event. File watcher events are mapped to note
 events with `changedIds`, `path`, and `timestamp`.
 
@@ -160,4 +160,5 @@ or auth headers.
 - Mutating browser routes require a same-origin `Origin` header.
 - Requests are subject to body size limits and local rate limits.
 - Browser origins must match the served app origin.
-- Realtime endpoints must use the same auth/origin policy when implemented.
+- Realtime endpoints must use the same origin policy as HTTP routes. If
+  app-level auth is added later, realtime endpoints must enforce it too.

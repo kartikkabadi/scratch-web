@@ -4,6 +4,7 @@ import path from "node:path";
 import { mkdir, mkdtemp, symlink, writeFile } from "node:fs/promises";
 import os from "node:os";
 import type { AddressInfo } from "node:net";
+import { request } from "node:http";
 import { createScratchHttpServer, ScratchBridge } from "./index.js";
 
 async function startTestServer(options: { webRoot?: string } = {}) {
@@ -23,6 +24,35 @@ async function startTestServer(options: { webRoot?: string } = {}) {
   const address = server.address() as AddressInfo;
   const baseUrl = `http://127.0.0.1:${address.port}`;
   return { baseUrl, bridge, home, close: () => new Promise<void>((resolve) => server.close(() => resolve())) };
+}
+
+async function rawHttpRequest(
+  baseUrl: string,
+  options: { method: string; path: string; headers?: Record<string, string>; body?: string }
+): Promise<{ status: number; body: string }> {
+  const target = new URL(baseUrl);
+  return new Promise((resolve, reject) => {
+    const req = request(
+      {
+        hostname: target.hostname,
+        port: target.port,
+        path: options.path,
+        method: options.method,
+        headers: options.headers
+      },
+      (res) => {
+        let body = "";
+        res.setEncoding("utf8");
+        res.on("data", (chunk) => {
+          body += chunk;
+        });
+        res.on("end", () => resolve({ status: res.statusCode ?? 0, body }));
+      }
+    );
+    req.on("error", reject);
+    if (options.body) req.write(options.body);
+    req.end();
+  });
 }
 
 test("HTTP API supports create, read, save, search, and origin rejection", async () => {
@@ -63,6 +93,39 @@ test("HTTP API supports create, read, save, search, and origin rejection", async
       body: JSON.stringify({})
     });
     assert.equal(badMutation.status, 403);
+  } finally {
+    await server.close();
+  }
+});
+
+test("HTTP API rejects DNS-rebinding style host/origin pairs", async () => {
+  const server = await startTestServer();
+  try {
+    const response = await rawHttpRequest(server.baseUrl, {
+      method: "POST",
+      path: "/api/notes",
+      headers: {
+        host: "evil.example",
+        origin: "http://evil.example",
+        "content-type": "application/json"
+      },
+      body: "{}"
+    });
+    assert.equal(response.status, 403);
+    assert.match(response.body, /INVALID_HOST/u);
+  } finally {
+    await server.close();
+  }
+});
+
+test("HTTP API does not expose raw internal error messages", async () => {
+  const server = await startTestServer();
+  try {
+    const response = await fetch(`${server.baseUrl}/api/notes/Missing`);
+    assert.equal(response.status, 500);
+    const body = await response.json() as { error: { code: string; message: string } };
+    assert.equal(body.error.code, "INTERNAL_ERROR");
+    assert.equal(body.error.message, "Internal server error.");
   } finally {
     await server.close();
   }
@@ -139,6 +202,13 @@ test("HTTP API exposes Git status and blocks unsafe remote URLs", async () => {
       body: JSON.stringify({ url: "https://example.com/repo.git\n--upload-pack=evil" })
     });
     assert.equal(unsafeRemote.status, 400);
+
+    const credentialRemote = await fetch(`${server.baseUrl}/api/git/remote`, {
+      method: "POST",
+      headers: { "content-type": "application/json", origin: server.baseUrl },
+      body: JSON.stringify({ url: "https://user:token@example.com/repo.git" })
+    });
+    assert.equal(credentialRemote.status, 400);
   } finally {
     await server.close();
   }

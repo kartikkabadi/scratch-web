@@ -56,8 +56,8 @@ Do not use private note text as screenshot or prompt material during this smoke.
 - iCloud Drive Scratch folders use `scratch-web start` for now; LaunchAgent
   login startup remains disabled by default for this path because launchd can
   hang while reading iCloud-backed notes.
-- Optional app-level passcode/auth is still setup-owned and off by default.
-  Tailscale keeps the app private to the Tailnet, but shared Tailnets/devices
-  should use extra care.
+- App-level passcode/auth is not implemented in this beta. Tailscale keeps the
+  app private to the Tailnet, but shared Tailnets/devices should not be used for
+  private notes until app auth ships.
 - Mermaid/ELK is still the largest web vendor chunk. The build no longer warns,
   but real-phone startup feel should be judged during the device smoke.

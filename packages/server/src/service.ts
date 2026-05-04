@@ -78,6 +78,7 @@ export class ScratchBridge {
   async readNote(id: string): Promise<Note> {
     const root = this.requireRoot();
     const filePath = absPathFromId(root, id);
+    await assertNoSymlinkInPath(root, filePath);
     await assertNoSymlinkForSensitivePath(filePath);
     const content = await readFile(filePath, "utf8");
     const metadata = await stat(filePath);
@@ -98,6 +99,7 @@ export class ScratchBridge {
     const target = await this.resolveSaveTarget(root, request.id, sanitizedLeaf);
 
     if (request.id && target.oldPath) {
+      await assertNoSymlinkInPath(root, target.oldPath);
       await assertNoSymlinkForSensitivePath(target.oldPath);
     }
     await assertNoSymlinkInPath(root, target.filePath);
@@ -156,6 +158,7 @@ export class ScratchBridge {
   async deleteNote(id: string): Promise<void> {
     const root = this.requireRoot();
     const filePath = absPathFromId(root, id);
+    await assertNoSymlinkInPath(root, filePath);
     await assertNoSymlinkForSensitivePath(filePath);
     const version = await getFileVersion(filePath);
     await this.backupStore.backupNote({
@@ -196,6 +199,7 @@ export class ScratchBridge {
     validateFolderPath(folderPath);
     const target = path.resolve(root, folderPath);
     assertPathInside(root, target);
+    await assertNoSymlinkInPath(root, target);
     await assertNoSymlinkForSensitivePath(target);
     const notesToDelete = await walkMarkdownFiles(root, await this.getIgnoredDirs(), target);
     for (const notePath of notesToDelete) {
@@ -226,6 +230,7 @@ export class ScratchBridge {
     const destination = path.join(path.dirname(source), cleanName);
     assertPathInside(root, source);
     assertPathInside(root, destination);
+    await assertNoSymlinkInPath(root, source);
     await assertNoSymlinkForSensitivePath(source);
     await assertNoSymlinkInPath(root, destination);
     await assertNoSymlinkForSensitivePath(destination);
@@ -245,6 +250,7 @@ export class ScratchBridge {
     const leaf = id.split("/").at(-1) ?? id;
     const newId = targetFolder === "" ? leaf : `${targetFolder}/${leaf}`;
     const destination = absPathFromId(root, newId);
+    await assertNoSymlinkInPath(root, source);
     await assertNoSymlinkForSensitivePath(source);
     await assertNoSymlinkInPath(root, destination);
     await assertNoSymlinkForSensitivePath(destination);
@@ -270,6 +276,7 @@ export class ScratchBridge {
     if (destination.startsWith(`${source}${path.sep}`) || destination === source) {
       throw new ScratchWebError("INVALID_MOVE", "Cannot move a folder into itself.");
     }
+    await assertNoSymlinkInPath(root, source);
     await assertNoSymlinkForSensitivePath(source);
     await assertNoSymlinkInPath(root, destination);
     await assertNoSymlinkForSensitivePath(destination);
@@ -399,6 +406,7 @@ export class ScratchBridge {
   async readAsset(assetPath: string): Promise<{ bytes: Buffer; metadata: AssetMetadata }> {
     const root = this.requireRoot();
     const filePath = absAssetPath(root, assetPath);
+    await assertNoSymlinkInPath(root, filePath);
     await assertNoSymlinkForSensitivePath(filePath);
     const bytes = await readFile(filePath);
     const mimeType = mimeTypeForAssetPath(filePath);
@@ -422,6 +430,8 @@ export class ScratchBridge {
     if (!id) {
       throw new ScratchWebError("INVALID_NOTE_PATH", "Invalid note path.");
     }
+    await assertNoSymlinkInPath(root, filePath);
+    await assertNoSymlinkForSensitivePath(filePath);
     const [content, metadata, version] = await Promise.all([readFile(filePath, "utf8"), stat(filePath), getFileVersion(filePath)]);
     return {
       id,

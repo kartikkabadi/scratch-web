@@ -136,7 +136,7 @@ Legend:
 | About/attribution | About settings | Implemented in settings/docs | Required | Credit Scratch, erictli, unofficial status, Scratch Web version | Package/version API optional | Visual/docs test |
 | PWA installability | Seed | Implemented basic; M3F verified `/api/*` NetworkOnly service-worker behavior | Required | Manifest/icons/offline shell/no private caching | Web manifest/SW review | PWA tests |
 | Offline/unreachable state | Seed | Implemented | Required | Keep clear Mac/Tailscale unavailable state | Health polling | Browser tests |
-| App auth/passcode | Seed optional/off default | Setup/CLI mostly, UI explanatory only | Required as optional setting/setup info | CLI/config; not parity upstream | Security tests |
+| App auth/passcode | Seed optional/off default | Not implemented in beta; UI/docs disclose Tailnet-only access boundary | Required as future optional setting/setup info | CLI/config; not parity upstream | Security tests |
 
 ## API Support Delivered In M3B
 
@@ -170,7 +170,7 @@ OpenCode should consume these real contracts instead of faking client state.
      types for future backend emitters
 
 4. Asset/image handling:
-   - safe authenticated local asset route
+   - safe same-origin local asset route
    - import/copy image policy under notes root
    - extension and MIME validation
    - size limits

@@ -8,6 +8,8 @@ trusted.
 - Server binds to `127.0.0.1` by default.
 - Tailscale Serve provides the HTTPS Tailnet URL.
 - Tailscale Funnel is disabled by default and must never be enabled silently.
+- App-level passcode auth is not implemented in the beta. The current access
+  boundary is a private Tailnet you control.
 
 ## Browser/API Protection
 
@@ -37,7 +39,7 @@ For reopened M3 parity:
 - `javascript:` and `data:text/html` links must be rejected or neutralized.
 - Mermaid must run with strict security settings.
 - KaTeX must not allow trusted HTML.
-- Local images/assets must be served only through safe authenticated routes
+- Local images/assets must be served only through safe same-origin routes
   scoped to the configured notes root.
 - Asset/import UI must not ship until extension, MIME, size, path-boundary,
   symlink, and backup tests exist.

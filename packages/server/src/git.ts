@@ -181,6 +181,17 @@ function validateRemoteUrl(remoteUrl: string): void {
   if (/[\n\r\0]/u.test(trimmed)) {
     throw new ScratchWebError("INVALID_GIT_REMOTE", "Git remote URL contains invalid characters.");
   }
+  if (/^https?:\/\//iu.test(trimmed)) {
+    let parsed: URL;
+    try {
+      parsed = new URL(trimmed);
+    } catch {
+      throw new ScratchWebError("INVALID_GIT_REMOTE", "Git remote URL is invalid.");
+    }
+    if (parsed.username || parsed.password) {
+      throw new ScratchWebError("INVALID_GIT_REMOTE", "Git remote URL must not contain embedded credentials.");
+    }
+  }
   if (!/^(https:\/\/|ssh:\/\/|git@)[^\s]+$/u.test(trimmed)) {
     throw new ScratchWebError("INVALID_GIT_REMOTE", "Git remote must be an HTTPS or SSH URL.");
   }

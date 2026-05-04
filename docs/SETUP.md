@@ -128,7 +128,7 @@ Setup must ask before:
 - configuring Tailscale Serve
 - creating or modifying a LaunchAgent
 - selecting a notes folder
-- enabling optional passcode/auth
+- enabling future optional passcode/auth
 - running Git init/commit/push/pull
 
 The CLI enforces `--yes` for LaunchAgent installation/removal and Tailscale Serve

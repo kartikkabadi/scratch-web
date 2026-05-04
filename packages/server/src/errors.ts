@@ -13,9 +13,5 @@ export function toScratchWebError(error: unknown): ScratchWebError {
   if (error instanceof ScratchWebError) {
     return error;
   }
-  if (error instanceof Error) {
-    return new ScratchWebError("INTERNAL_ERROR", error.message, 500);
-  }
-  return new ScratchWebError("INTERNAL_ERROR", String(error), 500);
+  return new ScratchWebError("INTERNAL_ERROR", "Internal server error.", 500);
 }
-

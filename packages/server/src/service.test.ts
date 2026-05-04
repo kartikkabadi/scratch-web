@@ -121,8 +121,11 @@ test("writes reject symlinked parent directories", async () => {
   const outside = path.join(home, "outside");
   const linkedFolder = path.join(notesRoot, "LinkedFolder");
   await mkdir(outside);
+  await writeFile(path.join(outside, "Secret.md"), "# Secret");
   await symlink(outside, linkedFolder);
 
+  await assert.rejects(bridge.readNote("LinkedFolder/Secret"), /Symlink/u);
+  await assert.rejects(bridge.deleteNote("LinkedFolder/Secret"), /Symlink/u);
   await assert.rejects(bridge.createNote("LinkedFolder"), /Symlink/u);
   await assert.rejects(bridge.createFolder("LinkedFolder/Nested"), /Symlink/u);
 
@@ -222,4 +225,16 @@ test("asset imports reject a symlinked assets directory", async () => {
     }),
     /Symlink/u
   );
+});
+
+test("asset reads reject a symlinked assets directory", async () => {
+  const { bridge, notesRoot, home } = await makeBridge();
+  const png = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAFgwJ/l8hP4wAAAABJRU5ErkJggg==", "base64");
+  const outsideAssets = path.join(home, "outside-assets");
+  await rm(path.join(notesRoot, "assets"), { recursive: true, force: true });
+  await mkdir(outsideAssets);
+  await writeFile(path.join(outsideAssets, "Logo.png"), png);
+  await symlink(outsideAssets, path.join(notesRoot, "assets"));
+
+  await assert.rejects(bridge.readAsset("Logo.png"), /Symlink/u);
 });

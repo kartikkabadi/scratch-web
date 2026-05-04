@@ -11,16 +11,20 @@ export interface HttpServerOptions {
   bridge: ScratchBridge;
   host: string;
   port: number;
+  allowedOrigins?: readonly string[];
   webRoot?: string;
 }
 
 export function createScratchHttpServer(options: HttpServerOptions): Server {
   const rateLimiter = new InMemoryRateLimiter();
+  const allowedOrigins = buildAllowedOrigins(options);
+  const allowedHosts = buildAllowedHosts(allowedOrigins);
+  const dynamicLocalPorts = options.port === 0 && (options.host === "127.0.0.1" || options.host === "localhost");
   return createServer(async (req, res) => {
     try {
       rateLimiter.assertAllowed(req.socket.remoteAddress ?? "unknown");
       const url = new URL(req.url ?? "/", `http://${req.headers.host ?? "localhost"}`);
-      const response = await routeRequest(options, req.method ?? "GET", url, req.headers.origin, req);
+      const response = await routeRequest(options, req.method ?? "GET", url, req.headers.origin, req, allowedOrigins, allowedHosts, dynamicLocalPorts);
       res.statusCode = response.status;
       for (const [key, value] of response.headers) {
         res.setHeader(key, value);
@@ -41,10 +45,14 @@ async function routeRequest(
   method: string,
   url: URL,
   origin: string | undefined,
-  request: AsyncIterable<Uint8Array> & { headers: { [key: string]: string | string[] | undefined } }
+  request: AsyncIterable<Uint8Array> & { headers: { [key: string]: string | string[] | undefined } },
+  allowedOrigins: readonly string[],
+  allowedHosts: ReadonlySet<string>,
+  dynamicLocalPorts: boolean
 ): Promise<Response> {
   const bridge = options.bridge;
-  validateOrigin(origin, url, method);
+  validateHost(request.headers.host, allowedHosts, dynamicLocalPorts);
+  validateOrigin(origin, allowedOrigins, method, dynamicLocalPorts);
   validateMutationHeaders(method, request.headers["content-type"]);
 
   if (method === "GET" && url.pathname === "/health") {
@@ -242,7 +250,7 @@ async function writeNodeResponse(res: { end: (chunk?: unknown) => void; write: (
   });
 }
 
-function validateOrigin(origin: string | undefined, url: URL, method: string): void {
+function validateOrigin(origin: string | undefined, allowedOrigins: readonly string[], method: string, dynamicLocalPorts: boolean): void {
   const isMutation = method !== "GET" && method !== "HEAD" && method !== "OPTIONS";
   if (!origin) {
     if (isMutation) {
@@ -250,9 +258,66 @@ function validateOrigin(origin: string | undefined, url: URL, method: string): v
     }
     return;
   }
-  const parsed = new URL(origin);
-  if (parsed.host !== url.host) {
+  let normalized: string;
+  try {
+    normalized = normalizeOrigin(origin);
+  } catch {
     throw new ScratchWebError("INVALID_ORIGIN", "Origin is not allowed.", 403);
+  }
+  if (!allowedOrigins.includes(normalized) && !(dynamicLocalPorts && isLocalOrigin(normalized))) {
+    throw new ScratchWebError("INVALID_ORIGIN", "Origin is not allowed.", 403);
+  }
+}
+
+function validateHost(host: string | string[] | undefined, allowedHosts: ReadonlySet<string>, dynamicLocalPorts: boolean): void {
+  const value = Array.isArray(host) ? host[0] : host;
+  if (!value) {
+    throw new ScratchWebError("HOST_REQUIRED", "Host is required.", 400);
+  }
+  if (!allowedHosts.has(value.toLowerCase()) && !(dynamicLocalPorts && isLocalHost(value))) {
+    throw new ScratchWebError("INVALID_HOST", "Host is not allowed.", 403);
+  }
+}
+
+function buildAllowedOrigins(options: HttpServerOptions): string[] {
+  const origins = new Set<string>();
+  const add = (origin: string) => {
+    try {
+      origins.add(normalizeOrigin(origin));
+    } catch {
+      throw new ScratchWebError("INVALID_ALLOWED_ORIGIN", "Configured allowed origin is invalid.", 500);
+    }
+  };
+
+  add(`http://${options.host}:${options.port}`);
+  if (options.host === "127.0.0.1") add(`http://localhost:${options.port}`);
+  if (options.host === "localhost") add(`http://127.0.0.1:${options.port}`);
+  for (const origin of options.allowedOrigins ?? []) {
+    if (origin.trim()) add(origin);
+  }
+  return [...origins];
+}
+
+function buildAllowedHosts(allowedOrigins: readonly string[]): ReadonlySet<string> {
+  return new Set(allowedOrigins.map((origin) => new URL(origin).host.toLowerCase()));
+}
+
+function normalizeOrigin(origin: string): string {
+  const parsed = new URL(origin);
+  return parsed.origin;
+}
+
+function isLocalOrigin(origin: string): boolean {
+  const parsed = new URL(origin);
+  return parsed.protocol === "http:" && (parsed.hostname === "127.0.0.1" || parsed.hostname === "localhost");
+}
+
+function isLocalHost(host: string): boolean {
+  try {
+    const parsed = new URL(`http://${host}`);
+    return parsed.hostname === "127.0.0.1" || parsed.hostname === "localhost";
+  } catch {
+    return false;
   }
 }
 

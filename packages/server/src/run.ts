@@ -11,6 +11,10 @@ const notesRoot = process.env.SCRATCH_WEB_NOTES_ROOT;
 const home = process.env.SCRATCH_WEB_HOME ?? path.join(os.homedir(), ".scratch-web");
 const webRoot = process.env.SCRATCH_WEB_WEB_ROOT ?? path.resolve(new URL(".", import.meta.url).pathname, "../../web/dist");
 const logPath = path.join(home, "logs", "service.log");
+const allowedOrigins = (process.env.SCRATCH_WEB_ALLOWED_ORIGINS ?? "")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
 
 if (!notesRoot) {
   throw new Error("SCRATCH_WEB_NOTES_ROOT is required.");
@@ -24,7 +28,7 @@ const bridge = new ScratchBridge({
 });
 await bridge.initialize();
 
-const server = createScratchHttpServer({ bridge, host, port, webRoot });
+const server = createScratchHttpServer({ bridge, host, port, allowedOrigins, webRoot });
 server.listen(port, host, () => {
   void log(`Scratch Web listening on http://${host}:${port}`);
 });
