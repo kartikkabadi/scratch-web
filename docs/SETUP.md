@@ -46,9 +46,9 @@ A copy is also kept at:
 ```bash
 pnpm install
 pnpm build
-pnpm --filter @scratch-web/cli exec scratch-web setup --notes-folder "/path/to/Scratch notes"
-pnpm --filter @scratch-web/cli exec scratch-web doctor
-pnpm --filter @scratch-web/cli exec scratch-web start
+pnpm scratch-web setup --notes-folder "/path/to/Scratch notes"
+pnpm scratch-web doctor
+pnpm scratch-web start
 ```
 
 The local app runs on `http://127.0.0.1:47832` by default.
@@ -115,6 +115,7 @@ Check status:
 scratch-web tailscale status
 scratch-web status
 scratch-web doctor
+scratch-web device-smoke
 ```
 
 ## Confirmations Required
@@ -132,3 +133,21 @@ Setup must ask before:
 
 The CLI enforces `--yes` for LaunchAgent installation/removal and Tailscale Serve
 configuration so an agent cannot perform those actions silently.
+
+## Backups
+
+Scratch Web writes backup manifest entries before overwrites and deletes. List
+them locally:
+
+```bash
+scratch-web backups list
+```
+
+Restore one entry only after choosing an exact timestamp from the list:
+
+```bash
+scratch-web backups restore --timestamp "2026-05-03T12:00:00.000Z" --yes
+```
+
+Restore is local-only. It refuses manifest entries outside the configured notes
+folder and saves a safety copy of the current file before replacing it.

@@ -138,23 +138,11 @@ function AppContent() {
 
   if (isLoading) {
     return (
-      <div
-        style={{
-          height: "100%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          backgroundColor: "var(--color-bg-secondary)",
-        }}
-      >
-        <div
-          style={{
-            color: "var(--color-text-muted)",
-            fontSize: "0.875rem",
-            fontWeight: 500,
-          }}
-        >
-          Initializing Scratch...
+      <div className="scratch-loading-shell">
+        <div className="scratch-loading-card" aria-live="polite">
+          <div className="scratch-loading-glyph" />
+          <div className="scratch-loading-title">Opening Scratch</div>
+          <div className="scratch-loading-subtitle">Preparing your notes workspace</div>
         </div>
       </div>
     );
@@ -166,6 +154,7 @@ function AppContent() {
 
   return (
     <div
+      className="scratch-app-shell"
       style={{
         height: "100%",
         display: "flex",

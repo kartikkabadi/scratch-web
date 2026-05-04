@@ -194,10 +194,10 @@ Codex should not ask OpenCode to fake unavailable backend state.
 
 OpenCode must use these skills in its prompt:
 
-- `[LOCAL_PATH]`
-- `[LOCAL_PATH]`
-- `[LOCAL_PATH]`
-- `[LOCAL_PATH]`
+- `<local-skills>/design-taste-frontend/SKILL.md`
+- `<local-skills>/redesign-existing-projects/SKILL.md`
+- `<local-skills>/image-to-code/SKILL.md`
+- `<local-skills>/minimalist-ui/SKILL.md`
 
 Skill interpretation for this project:
 

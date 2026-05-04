@@ -1,0 +1,48 @@
+name: Bug report
+description: Report a reproducible Scratch Web bug.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not include private note content, Tailnet hostnames, device serials,
+        tokens, or local user paths.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What went wrong?
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Reproduction
+      description: Steps using disposable/demo notes where possible.
+      placeholder: |
+        1. Start Scratch Web with a demo notes folder.
+        2. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: input
+    id: commit
+    attributes:
+      label: Version or commit
+  - type: textarea
+    id: verification
+    attributes:
+      label: Checks run
+      description: Example: pnpm check, pnpm test, browser/device smoke.

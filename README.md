@@ -1,5 +1,7 @@
 # Scratch Web
 
+[![CI](https://github.com/kartikkabadi/scratch-web/actions/workflows/ci.yml/badge.svg)](https://github.com/kartikkabadi/scratch-web/actions/workflows/ci.yml)
+
 Scratch Web is an experimental, unofficial web companion for
 [Scratch](https://github.com/erictli/scratch) by erictli.
 
@@ -10,17 +12,29 @@ Mac-hosted web bridge.
 
 ## Status
 
-Experimental beta. This project writes directly to your Scratch notes folder, so
-safety, backups, and conflict detection are core requirements before a public
-release.
+Experimental beta and open source under MIT. This project writes directly to
+your Scratch notes folder, so safety, backups, and conflict detection are core
+requirements.
 
-Current development focus: reopened M3 full practical Scratch parity. The first
-mobile web shell exists, but it is not feature-complete enough for beta parity.
-Use [docs/SCRATCH_PARITY_INVENTORY.md](docs/SCRATCH_PARITY_INVENTORY.md) and
-[docs/FRONTEND_OPENCODE_BRIEF.md](docs/FRONTEND_OPENCODE_BRIEF.md) as the source
-of truth for the next frontend/API waves.
+Current development focus: private beta ship readiness. M3 practical Scratch
+parity, automated M4 re-smoke, isolated real-world QA, safe Scratch-folder
+write-cycle smoke, Android Chrome device smoke, and desktop browser smoke have
+landed. iPhone Safari was explicitly skipped for this ship decision. See
+[docs/SHIP_READINESS.md](docs/SHIP_READINESS.md).
+The prompt-to-evidence audit lives in
+[docs/COMPLETION_AUDIT.md](docs/COMPLETION_AUDIT.md).
 
-## What It Will Do
+## Screenshots
+
+The screenshots below use an isolated demo notes folder, not private notes.
+
+| Desktop | Mobile browser |
+| --- | --- |
+| ![Scratch Web desktop screenshot](docs/release-screenshots/desktop-chrome.png) | ![Scratch Web mobile browser screenshot](docs/release-screenshots/mobile-browser.png) |
+
+Capture details live in [docs/RELEASE_SCREENSHOTS.md](docs/RELEASE_SCREENSHOTS.md).
+
+## What It Does
 
 - Run on your Mac as a local background service.
 - Read and write the same local notes folder used by Scratch.
@@ -48,8 +62,9 @@ prefer a tagged release URL with checksum/signature verification.
 
 ## Attribution
 
-Scratch Web is independent and unofficial unless that changes upstream. See
-[docs/ATTRIBUTION.md](docs/ATTRIBUTION.md).
+Scratch Web is independent and unofficial unless that changes upstream. Scratch
+by erictli is the upstream product inspiration and behavioral reference. See
+[NOTICE.md](NOTICE.md) and [docs/ATTRIBUTION.md](docs/ATTRIBUTION.md).
 
 ## Development
 
@@ -57,6 +72,8 @@ Scratch Web is independent and unofficial unless that changes upstream. See
 pnpm install
 pnpm check
 pnpm build
+pnpm qa:realworld
+pnpm scratch-web doctor
 ```
 
 ## Local Setup Commands
@@ -64,6 +81,7 @@ pnpm build
 ```bash
 scratch-web setup --notes-folder "/path/to/Scratch notes"
 scratch-web doctor
+scratch-web device-smoke
 scratch-web launchagent install --yes
 scratch-web tailscale serve --yes
 ```

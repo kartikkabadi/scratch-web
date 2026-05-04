@@ -28,7 +28,7 @@ Kimi K2.6 via Canopy Wave. Do not pass a model flag unless Kartik asks.
 
 The OpenCode prompt must explicitly ask the agent to read:
 
-- `AGENTS.md` instructions provided in the Codex thread and `[LOCAL_PATH]`
+- `AGENTS.md` instructions provided in the Codex thread and the local workspace `AGENTS.md`, if present
 - `SEED.md`
 - `docs/SCRATCH_PARITY_INVENTORY.md`
 - `docs/API.md`
@@ -38,10 +38,10 @@ The OpenCode prompt must explicitly ask the agent to read:
 
 The OpenCode prompt must explicitly invoke and apply these skills:
 
-- `[LOCAL_PATH]`
-- `[LOCAL_PATH]`
-- `[LOCAL_PATH]`
-- `[LOCAL_PATH]`
+- `<local-skills>/design-taste-frontend/SKILL.md`
+- `<local-skills>/redesign-existing-projects/SKILL.md`
+- `<local-skills>/image-to-code/SKILL.md`
+- `<local-skills>/minimalist-ui/SKILL.md`
 
 Skill-use interpretation:
 
@@ -299,17 +299,17 @@ pnpm build
 Use this as the starting prompt for the first implementation wave:
 
 ```text
-You are working in [LOCAL_PATH]
+You are working in <repo-root>.
 
-Read [LOCAL_PATH]
+Read the local workspace AGENTS.md, if present, SEED.md, docs/SCRATCH_PARITY_INVENTORY.md,
 docs/API.md, packages/shared/src, packages/web/src, and the upstream Scratch
 reference files under reference/scratch/src listed in docs/FRONTEND_OPENCODE_BRIEF.md.
 
 Invoke and follow these local skills:
-- [LOCAL_PATH]
-- [LOCAL_PATH]
-- [LOCAL_PATH]
-- [LOCAL_PATH]
+- <local-skills>/design-taste-frontend/SKILL.md
+- <local-skills>/redesign-existing-projects/SKILL.md
+- <local-skills>/image-to-code/SKILL.md
+- <local-skills>/minimalist-ui/SKILL.md
 
 Important interpretation of the skills: use them for quality, mobile behavior,
 state coverage, and de-slopifying. Do NOT redesign Scratch into a new product.

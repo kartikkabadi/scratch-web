@@ -698,10 +698,10 @@ scratch_parity_expansion:
       - review OpenCode output for correctness, simplicity, security, and parity
       - fix non-visual integration mistakes when needed
     required_open_code_skills:
-      - [LOCAL_PATH]
-      - [LOCAL_PATH]
-      - [LOCAL_PATH]
-      - [LOCAL_PATH]
+      - <local-skills>/design-taste-frontend/SKILL.md
+      - <local-skills>/redesign-existing-projects/SKILL.md
+      - <local-skills>/image-to-code/SKILL.md
+      - <local-skills>/minimalist-ui/SKILL.md
     prompt_guardrails:
       - Do not redesign Scratch into a new product.
       - Do not add marketing UI.

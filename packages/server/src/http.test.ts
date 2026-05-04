@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import path from "node:path";
-import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, symlink, writeFile } from "node:fs/promises";
 import os from "node:os";
 import type { AddressInfo } from "node:net";
 import { createScratchHttpServer, ScratchBridge } from "./index.js";
@@ -63,6 +63,19 @@ test("HTTP API supports create, read, save, search, and origin rejection", async
       body: JSON.stringify({})
     });
     assert.equal(badMutation.status, 403);
+  } finally {
+    await server.close();
+  }
+});
+
+test("HTTP API rejects symlinked note reads", async () => {
+  const server = await startTestServer();
+  try {
+    await writeFile(path.join(server.home, "outside.md"), "# Outside\n\nsecret");
+    await symlink(path.join(server.home, "outside.md"), path.join(server.home, "notes", "Linked.md"));
+
+    const response = await fetch(`${server.baseUrl}/api/notes/Linked`);
+    assert.equal(response.status, 400);
   } finally {
     await server.close();
   }

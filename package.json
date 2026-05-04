@@ -4,16 +4,38 @@
   "private": true,
   "description": "A private, mobile-first web companion for Scratch notes over Tailscale.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kartikkabadi/scratch-web.git"
+  },
+  "bugs": {
+    "url": "https://github.com/kartikkabadi/scratch-web/issues"
+  },
+  "homepage": "https://github.com/kartikkabadi/scratch-web#readme",
+  "keywords": [
+    "scratch",
+    "markdown",
+    "notes",
+    "pwa",
+    "tailscale"
+  ],
   "type": "module",
   "packageManager": "pnpm@10.0.0",
   "scripts": {
     "build": "pnpm -r build",
     "check": "pnpm --filter @scratch-web/shared build && pnpm -r check",
+    "scratch-web": "node packages/cli/dist/index.js",
+    "qa:realworld": "node scripts/full-realworld-qa.mjs",
     "test": "pnpm -r test",
     "lint": "pnpm -r lint"
   },
   "engines": {
     "node": ">=22"
+  },
+  "pnpm": {
+    "overrides": {
+      "serialize-javascript": "7.0.5"
+    }
   },
   "devDependencies": {
     "@types/node": "^24.0.0",

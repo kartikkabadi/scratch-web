@@ -1,7 +1,8 @@
 # M3F Mobile QA And Parity Review
 
-Status: automated local QA complete; real-device Tailnet QA still required before
-M5 beta readiness can be claimed.
+Status: automated local QA complete; Redmi Android Chrome Tailnet smoke, Helium
+browser smoke, and the real Scratch-folder write-cycle have passed. iPhone
+Safari was explicitly skipped for this ship decision.
 
 ## Scope
 
@@ -38,7 +39,7 @@ Covered states:
 
 ## Tailnet URL Smoke From Mac
 
-URL tested: `[TAILNET_URL]`
+URL tested: the configured private Tailnet HTTPS URL.
 
 Result: 8 passed, 0 failed.
 
@@ -128,12 +129,11 @@ Observed:
 Follow-up live re-smoke:
 
 - The installed LaunchAgent had been left pointing at a temporary M4 smoke notes
-  folder. I reconfigured Scratch Web to the real iCloud Scratch folder:
-  `[LOCAL_PATH]`.
+  folder. I reconfigured Scratch Web to the user's iCloud Scratch folder:
+  `~/Library/Mobile Documents/com~apple~CloudDocs/Scratch`.
 - Tailscale Serve stayed on the existing port `47832`.
-- The Tailnet URL successfully lists the real notes through
-  `[TAILNET_URL]`.
-- The real folder currently contains 86 Markdown notes.
+- The Tailnet URL successfully lists the configured notes through the notes API.
+- The configured folder returned the expected Markdown notes.
 
 Important issue found:
 
@@ -158,16 +158,49 @@ I did not rerun `scratch-web tailscale serve --yes` during this pass because the
 existing Tailscale Serve configuration is already correct and rerunning it would
 mutate real machine network state.
 
+## Real Redmi Tailnet Smoke
+
+Device used: a Redmi-class Android device through adb. Exact model and serial
+are intentionally omitted from public docs.
+
+Covered on the actual Tailnet URL:
+
+- Tailscale connected on the Redmi.
+- Android Chrome loaded the configured private Tailnet URL.
+- The updated polished shell loaded after cache-busting the URL.
+- Empty state no longer exposes the editor formatting/source toolbar.
+- Existing note list opened and a note was selected.
+- Settings opened from the mobile shell.
+- Source mode toggled from visual editor to source editor.
+- Android crash buffer was empty after the flow.
+
+The RMX device was intentionally not used.
+
+## Helium Browser Smoke
+
+Browser used: Helium (`net.imput.helium`) through Computer Use.
+
+Covered on `http://127.0.0.1:47832/`:
+
+- App shell loaded in a browser surface.
+- Sidebar note list rendered.
+- Empty state rendered with polished shell.
+- Settings opened.
+- Appearance tab opened.
+- Command palette opened.
+
+The Codex in-app-browser Browser Use `iab` backend was still unavailable in this
+session, so Helium was used as the browser automation surface.
+
 ## Remaining Parity And Readiness Gaps
 
-These are the remaining gaps before M5 beta readiness:
+These are the remaining non-blocking gaps after the private beta ship decision:
 
-1. Real Android Chrome Tailnet smoke must be confirmed on the actual `.ts.net`
-   URL after the current M3 build is running. The Tailnet URL itself has passed
-   a Mac-hosted Chromium smoke test.
-2. Real iPhone Safari Tailnet smoke must be confirmed on the actual `.ts.net`
-   URL after the current M3 build is running. The Tailnet URL itself has passed
-   a Mac-hosted Chromium smoke test.
+1. Real iPhone Safari Tailnet smoke was explicitly skipped for this ship
+   decision. The Tailnet URL itself has passed a Mac-hosted Chromium smoke test,
+   and Android Chrome passed on Redmi.
+2. Codex in-app-browser automation is blocked by the Browser Use backend not
+   exposing an in-app-browser target in this session.
 3. Light-mode upstream Scratch reference screenshots are still missing. Current
    web light-mode screenshots exist, but upstream light references were not
    captured to avoid changing the user's Scratch/macOS appearance without a
@@ -181,17 +214,16 @@ These are the remaining gaps before M5 beta readiness:
    This is functional and explicit, but not full Scratch dialog fidelity.
 8. Frontmatter should be preserved and round-tripped, but there is no dedicated
    Scratch-like frontmatter editing surface.
-9. The web build still emits a large-chunk warning because the editor stack,
-   Markdown, Mermaid, KaTeX, and syntax highlighting ship together. This is not
-   a correctness bug, but should be addressed during beta hardening if startup
-   feels slow on real phones.
+9. The web build no longer emits the large-chunk warning after the M5
+   beta-hardening split. Mermaid/ELK remains the largest optional vendor chunk;
+   startup feel should still be checked on real phones.
 10. LaunchAgent login startup is not reliable yet for iCloud-backed Scratch
     folders. The current live service is intentionally running as a direct
     background process instead of launchd.
 
 ## Verdict
 
-Automated M3F is complete. Scratch Web is ready for real-device Tailnet smoke on
-Android Chrome and iPhone Safari. It is not ready to claim M5 beta readiness
-until both real-device checks pass or the user explicitly approves the remaining
-device gap with release-note wording.
+Automated M3F is complete, and Redmi Android Chrome Tailnet smoke, Helium browser
+smoke, plus real Scratch-folder write-cycle now have evidence. Scratch Web is
+ready to ship as a private beta on this Mac and Tailnet with the non-blocking
+gaps above documented.

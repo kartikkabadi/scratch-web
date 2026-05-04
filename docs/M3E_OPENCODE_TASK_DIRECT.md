@@ -1,6 +1,6 @@
 # M3E Direct OpenCode Task
 
-You are working in `[LOCAL_PATH]`.
+You are working in `<repo-root>`.
 
 Do not delegate to subagents. Do not spawn workers. Edit files directly in this
 repo and return the changed file list. Keep the implementation focused and

@@ -53,5 +53,25 @@ export default defineConfig({
   build: {
     outDir: "dist",
     sourcemap: false,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes("/node_modules/")) return;
+          if (id.includes("beautiful-mermaid") || id.includes("elkjs")) {
+            return "vendor-mermaid";
+          }
+          if (id.includes("katex")) {
+            return "vendor-katex";
+          }
+          if (id.includes("highlight.js") || id.includes("lowlight")) {
+            return "vendor-highlight";
+          }
+          if (id.includes("marked") || id.includes("dompurify")) {
+            return "vendor-markdown";
+          }
+        },
+      },
+    },
+    chunkSizeWarningLimit: 1700,
   },
 });

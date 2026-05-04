@@ -58,9 +58,14 @@ Reference artifacts:
 
 ## M5: Beta Hardening After Parity
 
-- Backup restore polish.
+- Backup restore polish. Completed for the local CLI with confirmation, path
+  guards, and pre-restore safety copies.
+- Production bundle split. Completed for Markdown, KaTeX, syntax highlighting,
+  and Mermaid/ELK vendor chunks; real-phone startup feel still needs smoke.
+- Dependency audit. Completed with `pnpm audit` and `pnpm audit --prod`
+  reporting no known vulnerabilities after the `serialize-javascript` override.
 - Asset handling hardening when required by M3 inventory.
 - iCloud-friendly errors.
 - Reliable startup strategy for iCloud-backed Scratch folders.
 - Mobile testing over Tailscale.
-- Security and dependency audits.
+- Broader security review before a public release.

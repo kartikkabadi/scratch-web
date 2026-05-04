@@ -25,10 +25,10 @@ Git, assets/import, realtime, or settings behavior in the frontend.
 
 The current OpenCode prompt must invoke:
 
-- `[LOCAL_PATH]`
-- `[LOCAL_PATH]`
-- `[LOCAL_PATH]`
-- `[LOCAL_PATH]`
+- `<local-skills>/design-taste-frontend/SKILL.md`
+- `<local-skills>/redesign-existing-projects/SKILL.md`
+- `<local-skills>/image-to-code/SKILL.md`
+- `<local-skills>/minimalist-ui/SKILL.md`
 
 Use the skills for fidelity, mobile behavior, state coverage, and quality. Do
 not redesign away from Scratch.

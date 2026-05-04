@@ -78,6 +78,7 @@ export class ScratchBridge {
   async readNote(id: string): Promise<Note> {
     const root = this.requireRoot();
     const filePath = absPathFromId(root, id);
+    await assertNoSymlinkForSensitivePath(filePath);
     const content = await readFile(filePath, "utf8");
     const metadata = await stat(filePath);
     return {

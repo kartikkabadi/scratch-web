@@ -26,7 +26,7 @@ import { BlockMathEditor } from "./BlockMathEditor";
 import { LinkEditor } from "./LinkEditor";
 import { Wikilink } from "./Wikilink";
 import { ScratchBlockMath, normalizeBlockMath } from "./MathExtensions";
-import { normalizeUrl, isAllowedUrlScheme } from "../../lib/markdown";
+import { normalizeUrl, isAllowedUrlScheme, sanitizeUrl } from "../../lib/markdown";
 import type { EditorActions } from "../../App";
 import { FindToolbar } from "./FindToolbar";
 import { SlashCommandExtension, WikilinkSuggestionExtension } from "./extensions";
@@ -90,28 +90,7 @@ function ToolbarButton({
       type="button"
       onClick={onClick}
       title={title}
-      style={{
-        background: active ? "var(--color-bg-emphasis)" : "none",
-        border: "none",
-        color: active ? "var(--color-text)" : "var(--color-text-muted)",
-        cursor: "pointer",
-        padding: "4px",
-        borderRadius: "6px",
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        flexShrink: 0,
-      }}
-      onMouseEnter={(e) => {
-        const t = e.currentTarget;
-        if (!active) t.style.color = "var(--color-text)";
-        t.style.backgroundColor = "var(--color-bg-emphasis)";
-      }}
-      onMouseLeave={(e) => {
-        const t = e.currentTarget;
-        if (!active) t.style.color = "var(--color-text-muted)";
-        t.style.backgroundColor = active ? "var(--color-bg-emphasis)" : "transparent";
-      }}
+      className={`scratch-toolbar-btn${active ? " scratch-toolbar-btn-active" : ""}`}
     >
       {children}
     </button>
@@ -119,17 +98,7 @@ function ToolbarButton({
 }
 
 function Separator() {
-  return (
-    <div
-      style={{
-        width: "1px",
-        height: "18px",
-        backgroundColor: "var(--color-border)",
-        margin: "0 4px",
-        flexShrink: 0,
-      }}
-    />
-  );
+  return <div className="scratch-toolbar-separator" />;
 }
 
 function FormatBar({
@@ -146,15 +115,8 @@ function FormatBar({
   if (!editor) return null;
   return (
     <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: "2px",
-        overflowX: "auto",
-        scrollbarWidth: "none",
-        flexShrink: 0,
-      }}
-      className="scrollbar-none"
+      className="scrollbar-none scratch-format-bar"
+      aria-label="Formatting controls"
     >
       <ToolbarButton
         active={editor.isActive("bold")}
@@ -487,6 +449,10 @@ export function Editor({
       Placeholder.configure({ placeholder: "Start writing..." }),
       Link.configure({
         openOnClick: false,
+        defaultProtocol: "https",
+        protocols: ["http", "https", "mailto"],
+        isAllowedUri: (url) => sanitizeUrl(url) !== "",
+        shouldAutoLink: (url) => sanitizeUrl(url) !== "",
         HTMLAttributes: { class: "underline cursor-pointer" },
       }),
       Extension.create({
@@ -870,75 +836,29 @@ export function Editor({
   }, [toggleSourceMode]);
 
   return (
-    <div
-      style={{
-        flex: 1,
-        display: "flex",
-        flexDirection: "column",
-        overflow: "hidden",
-        backgroundColor: "var(--color-bg)",
-        paddingTop: 48,
-      }}
-      className="scratch-editor"
-    >
+    <div className="scratch-editor">
       {focusMode && onToggleFocusMode && (
         <button
           onClick={onToggleFocusMode}
           title="Exit focus mode"
-          style={{
-            position: "absolute",
-            top: 10,
-            right: 10,
-            zIndex: 40,
-            background: "var(--color-bg-secondary)",
-            border: "1px solid var(--color-border)",
-            color: "var(--color-text-muted)",
-            cursor: "pointer",
-            padding: "6px 10px",
-            borderRadius: "8px",
-            fontSize: "0.75rem",
-            fontWeight: 500,
-          }}
+          className="scratch-focus-exit-btn"
         >
           Exit Focus
         </button>
       )}
       <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "6px 10px",
-          borderBottom: "1px solid var(--color-border)",
-          flexShrink: 0,
-          gap: "8px",
-          ...(focusMode ? { display: "none" } : {}),
-        }}
+        className={`scratch-editor-toolbar${focusMode ? " scratch-editor-toolbar-hidden" : ""}`}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+        <div className="scratch-editor-toolbar-main">
           <button
             onClick={() => setSidebarOpen(true)}
-            style={{
-              background: "none",
-              border: "none",
-              color: "var(--color-text-muted)",
-              cursor: "pointer",
-              padding: "4px",
-              borderRadius: "6px",
-            }}
+            className="scratch-action-btn"
             title="Open sidebar"
           >
             <MenuIcon style={{ width: 18, height: 18 }} />
           </button>
-          <div
-            style={{
-              width: "1px",
-              height: "16px",
-              backgroundColor: "var(--color-border)",
-              margin: "0 4px",
-            }}
-          />
-          {!sourceMode && editor && (
+          <div className="scratch-toolbar-separator" />
+          {selectedNoteId && !sourceMode && editor && (
             <FormatBar
               editor={editor}
               onAddLink={handleAddLink}
@@ -957,62 +877,35 @@ export function Editor({
             }}
           />
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "8px", flexShrink: 0 }}>
-          {isSaving && (
-            <span
-              style={{
-                fontSize: "0.6875rem",
-                color: "var(--color-text-muted)",
-                opacity: 0.6,
-              }}
-            >
+        <div className="scratch-editor-toolbar-actions">
+          {selectedNoteId && isSaving && (
+            <span className="scratch-saving-indicator">
               Saving...
             </span>
           )}
-          {manualSave && (
+          {selectedNoteId && manualSave && (
             <button
               onClick={handleManualSave}
-              style={{
-                background: "none",
-                border: "1px solid var(--color-border)",
-                borderRadius: "6px",
-                padding: "3px 10px",
-                fontSize: "0.75rem",
-                fontWeight: 500,
-                color: "var(--color-text-muted)",
-                cursor: "pointer",
-              }}
+              className="scratch-action-btn-bordered"
             >
               Save
             </button>
           )}
-          <button
-            data-testid="source-mode-toggle"
-            type="button"
-            onClick={toggleSourceMode}
-            aria-label={sourceMode ? "Switch to visual editor" : "Switch to source editor"}
-            style={{
-              background: sourceMode ? "var(--color-bg-emphasis)" : "none",
-              border: "1px solid var(--color-border)",
-              borderRadius: "6px",
-              padding: "3px 10px",
-              fontSize: "0.75rem",
-              fontWeight: 500,
-              color: "var(--color-text-muted)",
-              cursor: "pointer",
-            }}
-          >
-            {sourceMode ? "Visual" : "Source"}
-          </button>
+          {selectedNoteId && (
+            <button
+              data-testid="source-mode-toggle"
+              type="button"
+              onClick={toggleSourceMode}
+              aria-label={sourceMode ? "Switch to visual editor" : "Switch to source editor"}
+              className={`scratch-action-btn-bordered${sourceMode ? " scratch-action-btn-bordered-active" : ""}`}
+            >
+              {sourceMode ? "Visual" : "Source"}
+            </button>
+          )}
           <button
             onClick={() => setView("settings")}
-            style={{
-              background: "none",
-              border: "none",
-              color: "var(--color-text-muted)",
-              cursor: "pointer",
-              padding: "4px",
-            }}
+            className="scratch-action-btn"
+            title="Settings"
           >
             <SettingsIcon style={{ width: 18, height: 18 }} />
           </button>
@@ -1020,13 +913,7 @@ export function Editor({
             <button
               onClick={onOpenPalette}
               title="Command palette"
-              style={{
-                background: "none",
-                border: "none",
-                color: "var(--color-text-muted)",
-                cursor: "pointer",
-                padding: "4px",
-              }}
+              className="scratch-action-btn"
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                 <path d="M3 6h18M3 12h18M3 18h18" />
@@ -1037,7 +924,10 @@ export function Editor({
       </div>
 
       {selectedNoteId ? (
-        <div style={{ flex: 1, overflow: "auto", position: "relative" }} ref={scrollContainerRef}>
+        <div
+          className="scratch-editor-body"
+          ref={scrollContainerRef}
+        >
           {sourceMode ? (
             <textarea
               data-testid="source-editor"
@@ -1048,23 +938,7 @@ export function Editor({
               }}
               onKeyDown={handleSourceKeyDown}
               spellCheck={false}
-              style={{
-                width: "100%",
-                height: "100%",
-                border: "none",
-                outline: "none",
-                resize: "none",
-                padding: "20px 16px 80px",
-                fontFamily: "monospace",
-                fontSize: "var(--editor-base-font-size)",
-                lineHeight: "var(--editor-line-height)",
-                color: "var(--color-text)",
-                backgroundColor: "transparent",
-                maxWidth: "42rem",
-                margin: "0 auto",
-                display: "block",
-                boxSizing: "border-box",
-              }}
+              className="scratch-source-textarea"
             />
           ) : (
             <EditorContent editor={editor} />
@@ -1085,8 +959,9 @@ export function Editor({
                 onSubmit={(url, text) => {
                   const ed = editorRef.current;
                   if (!ed) return;
-                  const normalized = normalizeUrl(url);
+                  const normalized = sanitizeUrl(url);
                   if (!normalized) {
+                    setError("Only http, https, and mailto links are supported.");
                     setLinkPopup(null);
                     return;
                   }
@@ -1143,18 +1018,7 @@ export function Editor({
           <FindToolbar open={findOpen} onClose={() => setFindOpen(false)} containerRef={scrollContainerRef} />
         </div>
       ) : (
-        <div
-          style={{
-            flex: 1,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            color: "var(--color-text-muted)",
-            padding: "2rem",
-            textAlign: "center",
-          }}
-        >
+        <div className="scratch-empty-state">
           <svg
             width="64"
             height="64"
@@ -1162,29 +1026,20 @@ export function Editor({
             fill="none"
             stroke="currentColor"
             strokeWidth="1"
-            style={{ marginBottom: "1rem", opacity: 0.25 }}
+            className="scratch-empty-state-icon"
           >
             <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
             <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" />
           </svg>
-          <p style={{ fontSize: "0.9375rem", fontWeight: 500, marginBottom: "4px" }}>
+          <p className="scratch-empty-state-title">
             What&apos;s on your mind?
           </p>
-          <p style={{ fontSize: "0.8125rem", opacity: 0.6, marginBottom: "1rem" }}>
+          <p className="scratch-empty-state-subtitle">
             Select a note or create a new one
           </p>
           <button
             onClick={() => void createNote()}
-            style={{
-              padding: "6px 14px",
-              borderRadius: "6px",
-              border: "1px solid var(--color-border)",
-              backgroundColor: "var(--color-bg-secondary)",
-              color: "var(--color-text)",
-              fontSize: "0.8125rem",
-              fontWeight: 500,
-              cursor: "pointer",
-            }}
+            className="scratch-empty-state-btn"
           >
             New Note
           </button>

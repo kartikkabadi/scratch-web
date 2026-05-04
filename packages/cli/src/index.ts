@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
-import { access, appendFile, chmod, mkdir, readFile, rm, stat, writeFile } from "node:fs/promises";
+import { access, appendFile, chmod, copyFile, lstat, mkdir, readFile, rm, stat, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { spawn, spawnSync } from "node:child_process";
 import { createDefaultServerConfig } from "@scratch-web/server";
-import type { ServiceStatus } from "@scratch-web/shared";
+import type { BackupManifestEntry, ServiceStatus } from "@scratch-web/shared";
 
 const COMMANDS = [
   "setup",
@@ -18,6 +18,7 @@ const COMMANDS = [
   "config",
   "launchagent",
   "tailscale",
+  "device-smoke",
   "update",
   "uninstall",
   "backups"
@@ -82,9 +83,12 @@ Commands:
   launchagent print            Print the generated plist
   tailscale status             Show Tailscale status
   tailscale serve --yes        Configure private Tailscale Serve
+  device-smoke                 Print the real-phone Tailnet smoke checklist
   update --yes                 Update source checkout and rebuild
   uninstall                    Stop service and remove LaunchAgent/config prompts
   backups list                 List local backup manifest entries
+  backups restore --timestamp <iso> --yes
+                               Restore one backup entry after confirmation
 `);
 }
 
@@ -131,6 +135,9 @@ export async function main(argv = process.argv.slice(2)): Promise<void> {
       break;
     case "tailscale":
       await tailscale(argv.slice(1));
+      break;
+    case "device-smoke":
+      await deviceSmoke();
       break;
     case "backups":
       await backups(argv.slice(1));
@@ -335,17 +342,89 @@ async function tailscale(args: string[]): Promise<void> {
   throw new Error(`Unknown tailscale action: ${action}`);
 }
 
+async function deviceSmoke(): Promise<void> {
+  const status = await getStatus();
+  const url = status.tailnetUrl ?? status.localUrl ?? "not configured";
+  console.log("Device smoke checklist");
+  console.log();
+  console.log(`URL: ${url}`);
+  console.log();
+  console.log("1. Connect the phone to the same Tailnet.");
+  console.log("2. Open the URL in iPhone Safari.");
+  console.log("3. Open the sidebar, open a note, open Settings, toggle source mode, and use find-in-note.");
+  console.log("4. Open the URL in Android Chrome and repeat the same checks.");
+  console.log("5. Create a throwaway note, edit it, confirm it saves on the Mac, then delete the throwaway note.");
+  console.log();
+  console.log("Do not copy private note text into screenshots, prompts, or bug reports.");
+  if (status.loginStartup === "unsupported_icloud") {
+    console.log("Note: this iCloud-backed setup uses scratch-web start; LaunchAgent login startup is intentionally disabled.");
+  }
+}
+
 async function backups(args: string[]): Promise<void> {
   const action = args[0] ?? "list";
-  if (action !== "list") {
-    console.log("Backup restore is planned for M5. For now, only backup listing is available.");
+  if (action === "restore") {
+    await restoreBackup(args.slice(1));
     return;
   }
-  const manifestPath = path.join(rootDir, "backups", "manifest.jsonl");
-  try {
-    console.log(await readFile(manifestPath, "utf8"));
-  } catch {
+  if (action !== "list") {
+    throw new Error(`Unknown backups action: ${action}`);
+  }
+  const entries = await readBackupManifest();
+  if (entries.length === 0) {
     console.log("No backups yet.");
+    return;
+  }
+  console.log(entries.map((entry) => JSON.stringify(entry)).join("\n"));
+}
+
+async function restoreBackup(args: string[]): Promise<void> {
+  if (!args.includes("--yes")) {
+    throw new Error("Restoring a backup requires --yes after the user confirms.");
+  }
+  const timestamp = readOption(args, "--timestamp");
+  if (!timestamp) {
+    throw new Error("Restoring a backup requires --timestamp <iso> from scratch-web backups list.");
+  }
+
+  const config = await readConfig();
+  if (!config.notesFolder) {
+    throw new Error("Run setup before restoring backups.");
+  }
+
+  const entry = (await readBackupManifest()).find((candidate) => candidate.timestamp === timestamp);
+  if (!entry) {
+    throw new Error(`No backup entry found for timestamp: ${timestamp}`);
+  }
+
+  const backupsRoot = path.join(rootDir, "backups");
+  const backupPath = path.resolve(entry.backupPath);
+  const notesRoot = path.resolve(config.notesFolder);
+  const originalPath = path.resolve(entry.originalPath);
+  assertPathInside(backupsRoot, backupPath, "Backup path is outside the Scratch Web backups folder.");
+  assertPathInside(notesRoot, originalPath, "Refusing to restore outside the configured notes folder.");
+  await assertNoSymlinkInPath(backupsRoot, backupPath);
+  await assertNoSymlinkInPath(notesRoot, originalPath);
+  const backupStats = await lstat(backupPath);
+  if (!backupStats.isFile()) {
+    throw new Error("Backup entry does not point to a file.");
+  }
+
+  let safetyCopy: string | null = null;
+  if (await exists(originalPath)) {
+    const safetyLeaf = `${entry.noteId.split("/").map(encodeURIComponent).join("__") || "note"}-${formatBackupTimestamp(new Date())}.md`;
+    safetyCopy = path.join(backupsRoot, "restore-safety", safetyLeaf);
+    await mkdir(path.dirname(safetyCopy), { recursive: true, mode: 0o700 });
+    await copyFile(originalPath, safetyCopy);
+    await chmod(safetyCopy, 0o600);
+  }
+
+  await mkdir(path.dirname(originalPath), { recursive: true, mode: 0o700 });
+  await copyFile(backupPath, originalPath);
+  await chmod(originalPath, 0o600);
+  console.log(`Restored backup ${entry.timestamp} to ${originalPath}`);
+  if (safetyCopy) {
+    console.log(`Previous file copy: ${safetyCopy}`);
   }
 }
 
@@ -602,6 +681,20 @@ async function writeLaunchAgentMirror(config: LocalConfig): Promise<void> {
   await writeFile(launchAgentMirrorPath, generateLaunchAgentPlist(config), { mode: 0o600 });
 }
 
+async function readBackupManifest(): Promise<BackupManifestEntry[]> {
+  const manifestPath = path.join(rootDir, "backups", "manifest.jsonl");
+  try {
+    return (await readFile(manifestPath, "utf8"))
+      .split(/\r?\n/u)
+      .filter(Boolean)
+      .map((line) => JSON.parse(line) as BackupManifestEntry);
+  } catch (error: unknown) {
+    const code = typeof error === "object" && error !== null && "code" in error ? String(error.code) : "";
+    if (code === "ENOENT") return [];
+    throw error;
+  }
+}
+
 function readOption(args: string[], name: string): string | null {
   const index = args.indexOf(name);
   if (index === -1) return null;
@@ -693,6 +786,36 @@ async function exists(filePath: string): Promise<boolean> {
   } catch {
     return false;
   }
+}
+
+function assertPathInside(root: string, candidate: string, message: string): void {
+  const relative = path.relative(path.resolve(root), path.resolve(candidate));
+  if (relative === "" || relative === ".." || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) {
+    throw new Error(message);
+  }
+}
+
+async function assertNoSymlinkInPath(root: string, target: string): Promise<void> {
+  const relative = path.relative(path.resolve(root), path.resolve(target));
+  const parts = relative.split(path.sep).filter(Boolean);
+  let current = path.resolve(root);
+  for (const part of parts) {
+    current = path.join(current, part);
+    try {
+      const stats = await lstat(current);
+      if (stats.isSymbolicLink()) {
+        throw new Error(`Refusing to use symlinked backup/restore path: ${current}`);
+      }
+    } catch (error: unknown) {
+      const code = typeof error === "object" && error !== null && "code" in error ? String(error.code) : "";
+      if (code === "ENOENT") return;
+      throw error;
+    }
+  }
+}
+
+function formatBackupTimestamp(date: Date): string {
+  return date.toISOString().replace(/[:.]/gu, "-");
 }
 
 async function awaitCanWrite(folder: string): Promise<boolean> {

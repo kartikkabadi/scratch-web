@@ -13,6 +13,7 @@ import {
   FolderIcon,
   TrashIcon,
   CopyIcon,
+  MoreHorizontalIcon,
 } from "../ui/icons";
 
 function formatDate(ts: number): string {
@@ -41,6 +42,31 @@ interface FolderNode {
   path: string;
   children: FolderNode[];
   notes: import("@scratch-web/shared").NoteMetadata[];
+}
+
+const COLLAPSED_FOLDERS_STORAGE_KEY = "scratch-web:collapsed-folders";
+
+function readCollapsedFolders(): Set<string> {
+  try {
+    const raw = window.localStorage.getItem(COLLAPSED_FOLDERS_STORAGE_KEY);
+    if (!raw) return new Set();
+    const parsed = JSON.parse(raw) as unknown;
+    if (!Array.isArray(parsed)) return new Set();
+    return new Set(parsed.filter((item): item is string => typeof item === "string"));
+  } catch {
+    return new Set();
+  }
+}
+
+function writeCollapsedFolders(folders: Set<string>): void {
+  try {
+    window.localStorage.setItem(
+      COLLAPSED_FOLDERS_STORAGE_KEY,
+      JSON.stringify(Array.from(folders).sort()),
+    );
+  } catch {
+    // localStorage can be unavailable in private or restricted contexts.
+  }
 }
 
 function buildFolderTree(
@@ -127,7 +153,9 @@ export function Sidebar() {
   } = useAppActions();
   const [searchOpen, setSearchOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
-  const [collapsedFolders, setCollapsedFolders] = useState<Set<string>>(new Set());
+  const [collapsedFolders, setCollapsedFolders] = useState<Set<string>>(
+    () => readCollapsedFolders(),
+  );
   const searchInputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<number | null>(null);
 
@@ -189,6 +217,7 @@ export function Sidebar() {
       const nxt = new Set(prev);
       if (nxt.has(folderPath)) nxt.delete(folderPath);
       else nxt.add(folderPath);
+      writeCollapsedFolders(nxt);
       return nxt;
     });
   }, []);
@@ -226,21 +255,7 @@ export function Sidebar() {
     });
   }, [rootNotes, pinnedIds]);
 
-  const sidebarStyle: React.CSSProperties = {
-    position: "fixed",
-    top: 0,
-    left: 0,
-    bottom: 0,
-    width: "280px",
-    maxWidth: "80vw",
-    zIndex: 40,
-    backgroundColor: "var(--color-bg-secondary)",
-    borderRight: "1px solid var(--color-border)",
-    display: "flex",
-    flexDirection: "column",
-    transform: sidebarOpen ? "translateX(0)" : "translateX(-100%)",
-    transition: "transform 0.25s ease-out",
-  };
+  const sidebarClass = `sb-sidebar scratch-sidebar${sidebarOpen ? " sb-sidebar-open" : ""}`;
 
   return (
     <>
@@ -248,150 +263,59 @@ export function Sidebar() {
       {sidebarOpen && (
         <div
           onClick={() => setSidebarOpen(false)}
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 35,
-            backgroundColor: "rgba(0,0,0,0.3)",
-            backdropFilter: "blur(2px)",
-          }}
-          className="mobile-overlay"
+          className="sb-mobile-overlay mobile-overlay"
         />
       )}
 
       {/* Mobile header */}
-      <div
-        style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          right: 0,
-          zIndex: 30,
-          height: "48px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "0 12px",
-          backgroundColor: "var(--color-bg-secondary)",
-          borderBottom: "1px solid var(--color-border)",
-        }}
-        className="mobile-header"
-      >
+      <div className="sb-mobile-header mobile-header">
         <button
           onClick={() => setSidebarOpen(true)}
-          style={{
-            background: "none",
-            border: "none",
-            color: "var(--color-text)",
-            cursor: "pointer",
-            padding: "4px",
-          }}
+          className="sb-mobile-header-btn"
         >
           <MenuIcon style={{ width: 20, height: 20 }} />
         </button>
-        <span
-          style={{
-            fontWeight: 600,
-            fontSize: "0.9375rem",
-            color: "var(--color-text)",
-          }}
-        >
-          Scratch
-        </span>
+        <span className="sb-mobile-header-title">Scratch</span>
         <button
           onClick={() => setView("settings")}
-          style={{
-            background: "none",
-            border: "none",
-            color: "var(--color-text-muted)",
-            cursor: "pointer",
-            padding: "4px",
-          }}
+          className="sb-mobile-header-btn"
         >
           <SettingsIcon style={{ width: 20, height: 20 }} />
         </button>
       </div>
 
       {/* Sidebar */}
-      <aside style={sidebarStyle} className="scratch-sidebar">
+      <aside className={sidebarClass}>
         {/* Header */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            padding: "12px 12px 8px",
-            borderBottom: "1px solid var(--color-border)",
-            flexShrink: 0,
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-            <span
-              style={{
-                fontWeight: 600,
-                fontSize: "1rem",
-                color: "var(--color-text)",
-              }}
-            >
-              Notes
-            </span>
-            <span
-              style={{
-                fontSize: "0.75rem",
-                fontWeight: 500,
-                color: "var(--color-text-muted)",
-                backgroundColor: "var(--color-bg-muted)",
-                padding: "1px 6px",
-                borderRadius: "4px",
-              }}
-            >
-              {notes.length}
-            </span>
+        <div className="sb-header">
+          <div className="sb-header-title-wrap">
+            <span className="sb-header-title">Notes</span>
+            <span className="sb-header-count">{notes.length}</span>
           </div>
-          <div style={{ display: "flex", gap: "2px" }}>
+          <div className="sb-header-actions">
             <button
               onClick={toggleSearch}
-              style={{
-                background: "none",
-                border: "none",
-                color: searchOpen
-                  ? "var(--color-text)"
-                  : "var(--color-text-muted)",
-                cursor: "pointer",
-                padding: "4px",
-                borderRadius: "6px",
-              }}
-              title="Search"
+              className={`sb-action-btn${searchOpen ? " sb-action-btn-active" : ""}`}
+            title="Search"
+            aria-label="Search notes"
             >
               <SearchIcon style={{ width: 18, height: 18 }} />
             </button>
             {foldersEnabled && (
               <button
                 onClick={handleCreateFolder}
-                style={{
-                  background: "none",
-                  border: "none",
-                  color: "var(--color-text-muted)",
-                  cursor: "pointer",
-                  padding: "4px",
-                  borderRadius: "6px",
-                }}
+                className="sb-action-btn"
                 title="New Folder"
+                aria-label="Create folder"
               >
                 <FolderIcon style={{ width: 18, height: 18 }} />
               </button>
             )}
             <button
               onClick={handleCreateNote}
-              style={{
-                background: "none",
-                border: "none",
-                color: "var(--color-text-muted)",
-                cursor: "pointer",
-                padding: "4px",
-                borderRadius: "6px",
-              }}
-              title="New Note"
+              className="sb-action-btn"
+            title="New Note"
+            aria-label="Create note"
             >
               <PlusIcon style={{ width: 20, height: 20 }} />
             </button>
@@ -400,14 +324,8 @@ export function Sidebar() {
 
         {/* Search */}
         {searchOpen && (
-          <div
-            style={{
-              padding: "8px 12px",
-              borderBottom: "1px solid var(--color-border)",
-              flexShrink: 0,
-            }}
-          >
-            <div style={{ position: "relative" }}>
+          <div className="sb-search">
+            <div className="sb-search-wrap">
               <input
                 ref={searchInputRef}
                 type="text"
@@ -416,17 +334,7 @@ export function Sidebar() {
                 onKeyDown={handleSearchKeyDown}
                 placeholder="Search notes..."
                 autoFocus
-                style={{
-                  width: "100%",
-                  padding: "6px 28px 6px 10px",
-                  borderRadius: "6px",
-                  border: "1px solid var(--color-border)",
-                  backgroundColor: "var(--color-bg)",
-                  color: "var(--color-text)",
-                  fontSize: "0.875rem",
-                  outline: "none",
-                  boxSizing: "border-box",
-                }}
+                className="sb-search-input"
               />
               {inputValue && (
                 <button
@@ -434,17 +342,8 @@ export function Sidebar() {
                     setInputValue("");
                     clearSearch();
                   }}
-                  style={{
-                    position: "absolute",
-                    right: "6px",
-                    top: "50%",
-                    transform: "translateY(-50%)",
-                    background: "none",
-                    border: "none",
-                    color: "var(--color-text-muted)",
-                    cursor: "pointer",
-                    padding: "2px",
-                  }}
+                  className="sb-search-clear"
+                  aria-label="Clear search"
                 >
                   <XIcon style={{ width: 16, height: 16 }} />
                 </button>
@@ -454,23 +353,9 @@ export function Sidebar() {
         )}
 
         {/* Note list */}
-        <div
-          style={{
-            flex: 1,
-            overflowY: "auto",
-            padding: "4px",
-          }}
-          className="scrollbar-none"
-        >
+        <div className="sb-note-list scrollbar-none">
           {displayItems.length === 0 ? (
-            <div
-              style={{
-                padding: "24px 12px",
-                textAlign: "center",
-                color: "var(--color-text-muted)",
-                fontSize: "0.875rem",
-              }}
-            >
+            <div className="sb-empty-state">
               {isSearching ? "No results found" : "No notes yet"}
             </div>
           ) : (
@@ -549,34 +434,11 @@ export function Sidebar() {
         </div>
 
         {/* Footer */}
-        <div
-          style={{
-            padding: "8px 12px",
-            borderTop: "1px solid var(--color-border)",
-            flexShrink: 0,
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <span
-            style={{
-              fontSize: "0.75rem",
-              color: "var(--color-text-muted)",
-            }}
-          >
-            Scratch Web
-          </span>
+        <div className="sb-footer">
+          <span className="sb-footer-label">Scratch Web</span>
           <button
             onClick={() => setView("settings")}
-            style={{
-              background: "none",
-              border: "none",
-              color: "var(--color-text-muted)",
-              cursor: "pointer",
-              padding: "4px",
-              borderRadius: "6px",
-            }}
+            className="sb-footer-settings-btn"
             title="Settings"
           >
             <SettingsIcon style={{ width: 18, height: 18 }} />
@@ -612,75 +474,30 @@ function NoteItem({
   return (
     <div
       onClick={() => onSelect(note.id)}
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: "8px",
-        padding: "7px 10px",
-        borderRadius: "6px",
-        cursor: "pointer",
-        marginBottom: "1px",
-        backgroundColor: isSelected
-          ? "var(--color-bg-muted)"
-          : "transparent",
-      }}
+      className={`sb-note-item${isSelected ? " sb-note-item-selected" : ""}`}
     >
       {pinned ? (
         <PinIcon
-          style={{
-            width: 14,
-            height: 14,
-            color: "var(--color-text-muted)",
-            flexShrink: 0,
-          }}
+          className="sb-note-icon"
+          style={{ width: 14, height: 14 }}
         />
       ) : (
         <NoteIcon
-          style={{
-            width: 14,
-            height: 14,
-            color: "var(--color-text-muted)",
-            opacity: 0.5,
-            flexShrink: 0,
-          }}
+          className="sb-note-icon sb-note-icon-muted"
+          style={{ width: 14, height: 14 }}
         />
       )}
-      <div style={{ minWidth: 0, flex: 1 }}>
-        <div
-          style={{
-            fontSize: "0.8125rem",
-            fontWeight: isSelected ? 600 : 400,
-            color: "var(--color-text)",
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-          }}
-        >
+      <div className="sb-note-body">
+        <div className="sb-note-title">
           {cleanTitle(note.title)}
         </div>
         {folder && (
-          <div
-            style={{
-              fontSize: "0.75rem",
-              color: "var(--color-text-muted)",
-              opacity: 0.7,
-              whiteSpace: "nowrap",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-            }}
-          >
+          <div className="sb-note-folder">
             {folder}/
           </div>
         )}
       </div>
-      <span
-        style={{
-          fontSize: "0.6875rem",
-          color: "var(--color-text-muted)",
-          opacity: 0.6,
-          flexShrink: 0,
-        }}
-      >
+      <span className="sb-note-date">
         {formatDate(note.modified)}
       </span>
       <button
@@ -688,27 +505,23 @@ function NoteItem({
           event.stopPropagation();
           setMenuOpen((open) => !open);
         }}
-        style={noteActionStyle}
+        className="sb-note-action-btn"
         title={`Note Actions ${note.id}`}
+        aria-label={`Note actions for ${cleanTitle(note.title)}`}
       >
-        ...
+        <MoreHorizontalIcon style={{ width: 14, height: 14 }} />
       </button>
       {menuOpen && (
         <div
           onClick={(event) => event.stopPropagation()}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "4px",
-            flexShrink: 0,
-          }}
+          className="sb-note-actions"
         >
           <button
             onClick={() => {
               onTogglePin(note.id);
               setMenuOpen(false);
             }}
-            style={noteActionStyle}
+            className="sb-note-action-btn"
             title={pinned ? "Unpin Note" : "Pin Note"}
           >
             <PinIcon style={{ width: 13, height: 13 }} />
@@ -718,7 +531,7 @@ function NoteItem({
               onDuplicate(note.id);
               setMenuOpen(false);
             }}
-            style={noteActionStyle}
+            className="sb-note-action-btn"
             title="Duplicate Note"
           >
             <CopyIcon style={{ width: 13, height: 13 }} />
@@ -730,7 +543,7 @@ function NoteItem({
               }
               setMenuOpen(false);
             }}
-            style={noteActionStyle}
+            className="sb-note-action-btn"
             title="Delete Note"
           >
             <TrashIcon style={{ width: 13, height: 13 }} />
@@ -740,16 +553,6 @@ function NoteItem({
     </div>
   );
 }
-
-const noteActionStyle: React.CSSProperties = {
-  background: "none",
-  border: "none",
-  color: "var(--color-text-muted)",
-  cursor: "pointer",
-  padding: "2px",
-  opacity: 0.65,
-  flexShrink: 0,
-};
 
 function FolderItem({
   folder,
@@ -804,48 +607,20 @@ function FolderItem({
     <div>
       <div
         onClick={() => onToggle(folder.path)}
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "4px",
-          padding: "6px 10px",
-          borderRadius: "6px",
-          cursor: "pointer",
-          marginBottom: "1px",
-        }}
+        className="sb-folder-row"
       >
         {collapsed ? (
           <ChevronRightIcon
-            style={{
-              width: 14,
-              height: 14,
-              color: "var(--color-text-muted)",
-              opacity: 0.5,
-              flexShrink: 0,
-            }}
+            className="sb-folder-chevron"
+            style={{ width: 14, height: 14 }}
           />
         ) : (
           <ChevronDownIcon
-            style={{
-              width: 14,
-              height: 14,
-              color: "var(--color-text-muted)",
-              opacity: 0.5,
-              flexShrink: 0,
-            }}
+            className="sb-folder-chevron"
+            style={{ width: 14, height: 14 }}
           />
         )}
-        <span
-          style={{
-            fontSize: "0.8125rem",
-            fontWeight: 500,
-            color: "var(--color-text-muted)",
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            flex: 1,
-          }}
-        >
+        <span className="sb-folder-name">
           {folder.name}
         </span>
         <button
@@ -853,14 +628,7 @@ function FolderItem({
             event.stopPropagation();
             onCreateNote(folder.path);
           }}
-          style={{
-            background: "none",
-            border: "none",
-            color: "var(--color-text-muted)",
-            cursor: "pointer",
-            padding: "2px",
-            opacity: 0.75,
-          }}
+          className="sb-folder-action-btn"
           title={`New Note in ${folder.path}`}
         >
           <PlusIcon style={{ width: 14, height: 14 }} />
@@ -870,14 +638,7 @@ function FolderItem({
             event.stopPropagation();
             createChildFolder();
           }}
-          style={{
-            background: "none",
-            border: "none",
-            color: "var(--color-text-muted)",
-            cursor: "pointer",
-            padding: "2px",
-            opacity: 0.75,
-          }}
+          className="sb-folder-action-btn"
           title={`New Folder in ${folder.path}`}
         >
           <FolderIcon style={{ width: 14, height: 14 }} />
@@ -887,40 +648,26 @@ function FolderItem({
             event.stopPropagation();
             renameThisFolder();
           }}
-          style={{
-            background: "none",
-            border: "none",
-            color: "var(--color-text-muted)",
-            cursor: "pointer",
-            padding: "0 3px",
-            fontSize: "0.875rem",
-            lineHeight: 1,
-          }}
+          className="sb-folder-action-btn"
           title={`Rename Folder ${folder.path}`}
+          aria-label={`Rename folder ${folder.path}`}
         >
-          ...
+          <MoreHorizontalIcon style={{ width: 14, height: 14 }} />
         </button>
         <button
           onClick={(event) => {
             event.stopPropagation();
             deleteThisFolder();
           }}
-          style={{
-            background: "none",
-            border: "none",
-            color: "var(--color-text-muted)",
-            cursor: "pointer",
-            padding: "0 3px",
-            fontSize: "0.875rem",
-            lineHeight: 1,
-          }}
+          className="sb-folder-action-btn"
           title={`Delete Folder ${folder.path}`}
+          aria-label={`Delete folder ${folder.path}`}
         >
-          x
+          <XIcon style={{ width: 14, height: 14 }} />
         </button>
       </div>
       {!collapsed && (
-        <div style={{ paddingLeft: "12px" }}>
+        <div className="sb-folder-children">
           {folder.children.map((child) => (
             <FolderItem
               key={child.path}

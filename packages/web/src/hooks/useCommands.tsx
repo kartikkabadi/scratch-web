@@ -73,6 +73,20 @@ export function useCommands({
 
   return useMemo(() => {
     const cmds: Command[] = [];
+    const runConfirmedGit = async (
+      confirmText: string,
+      action: () => Promise<unknown>,
+      successMessage: string,
+      failureMessage: string,
+    ) => {
+      if (!window.confirm(confirmText)) return;
+      try {
+        await action();
+        setError(successMessage);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : failureMessage);
+      }
+    };
 
     cmds.push({
       id: "new-note",
@@ -319,14 +333,15 @@ export function useCommands({
       category: "Git",
       icon: <NoteIcon style={{ width: 16, height: 16 }} />,
       execute: async () => {
-        const message = window.prompt("Commit message");
-        if (!message?.trim()) return;
-        try {
-          await commitGit(message.trim());
-          setError("Committed");
-        } catch (err) {
-          setError(err instanceof Error ? err.message : "Failed to commit");
-        }
+        const rawMessage = window.prompt("Commit message");
+        const message = rawMessage?.trim();
+        if (!message) return;
+        await runConfirmedGit(
+          `Commit all note changes with message "${message}"?`,
+          () => commitGit(message),
+          "Committed",
+          "Failed to commit",
+        );
       },
     });
 
@@ -336,12 +351,12 @@ export function useCommands({
       category: "Git",
       icon: <NoteIcon style={{ width: 16, height: 16 }} />,
       execute: async () => {
-        try {
-          await pushGit();
-          setError("Pushed");
-        } catch (err) {
-          setError(err instanceof Error ? err.message : "Failed to push");
-        }
+        await runConfirmedGit(
+          "Push commits to the configured Git remote?",
+          pushGit,
+          "Pushed",
+          "Failed to push",
+        );
       },
     });
 
@@ -351,12 +366,12 @@ export function useCommands({
       category: "Git",
       icon: <NoteIcon style={{ width: 16, height: 16 }} />,
       execute: async () => {
-        try {
-          await pullGit();
-          setError("Pulled");
-        } catch (err) {
-          setError(err instanceof Error ? err.message : "Failed to pull");
-        }
+        await runConfirmedGit(
+          "Pull note changes with --ff-only?",
+          pullGit,
+          "Pulled",
+          "Failed to pull",
+        );
       },
     });
 
@@ -366,12 +381,12 @@ export function useCommands({
       category: "Git",
       icon: <NoteIcon style={{ width: 16, height: 16 }} />,
       execute: async () => {
-        try {
-          await fetchGit();
-          setError("Fetched");
-        } catch (err) {
-          setError(err instanceof Error ? err.message : "Failed to fetch");
-        }
+        await runConfirmedGit(
+          "Fetch from the configured Git remote?",
+          fetchGit,
+          "Fetched",
+          "Failed to fetch",
+        );
       },
     });
 
@@ -381,12 +396,12 @@ export function useCommands({
       category: "Git",
       icon: <NoteIcon style={{ width: 16, height: 16 }} />,
       execute: async () => {
-        try {
-          await syncGit();
-          setError("Synced");
-        } catch (err) {
-          setError(err instanceof Error ? err.message : "Failed to sync");
-        }
+        await runConfirmedGit(
+          "Fetch, fast-forward pull, and push?",
+          syncGit,
+          "Synced",
+          "Failed to sync",
+        );
       },
     });
 

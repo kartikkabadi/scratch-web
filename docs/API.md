@@ -86,7 +86,7 @@ must not be dropped during updates.
 Milestone 2 starts with recursive substring search. Indexed search can come
 later.
 
-Backup list/restore remains a CLI/local setup feature until app-level auth and
+Backup list/restore is a CLI/local setup feature until app-level auth and
 restore UX exist. The browser API must not expose backup manifests in v1.
 
 ## Realtime

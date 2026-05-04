@@ -66,32 +66,32 @@ export function SettingsPage() {
   );
 
   return (
-    <div className="settings-shell" style={{ display: "flex", width: "100%", height: "100%" }}>
-      <aside className="settings-nav" style={navStyle}>
-        <div style={navHeaderStyle}>
-          <button onClick={() => setView("notes")} title="Back to notes" style={iconButtonStyle}>
+    <div className="settings-shell">
+      <aside className="settings-nav">
+        <div className="settings-nav-header">
+          <button onClick={() => setView("notes")} title="Back to notes" className="settings-nav-back-btn">
             <ArrowLeftIcon style={{ width: 18, height: 18 }} />
           </button>
-          <span style={{ fontWeight: 600, fontSize: "1rem", color: "var(--color-text)" }}>Settings</span>
+          <span className="settings-nav-title">Settings</span>
         </div>
-        <nav style={{ padding: 8, display: "flex", flexDirection: "column", gap: 2 }}>
+        <nav className="settings-nav-list">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
             return (
-              <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={tabStyle(isActive)}>
-                <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <Icon style={{ width: 16, height: 16 }} />
+              <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`settings-tab ${isActive ? "settings-tab-active" : ""}`}>
+                <span className="settings-tab-label">
+                  <Icon className="settings-tab-icon" />
                   {tab.label}
                 </span>
-                <kbd style={miniKbdStyle}>⌘{tab.shortcut}</kbd>
+                <kbd className="settings-tab-kbd">⌘{tab.shortcut}</kbd>
               </button>
             );
           })}
         </nav>
       </aside>
-      <main className="settings-content" style={{ flex: 1, overflow: "auto", padding: "24px 20px 60px" }}>
-        <div style={{ maxWidth: "44rem", margin: "0 auto" }}>
+      <main className="settings-content">
+        <div className="settings-content-inner">
           {activeTab === "general" && <GeneralSettings notesFolder={notesFolder} settings={settings} onChange={handleChange} />}
           {activeTab === "integrations" && <IntegrationsSettings settings={settings} onChange={handleChange} setError={setError} />}
           {activeTab === "appearance" && <AppearanceSettings settings={settings} onChange={handleChange} />}
@@ -109,7 +109,7 @@ function GeneralSettings({ notesFolder, settings, onChange }: { notesFolder: str
   const template = settings?.defaultNoteName ?? "Untitled";
 
   return (
-    <div style={stackStyle}>
+    <div className="settings-stack">
       <Section title="Folder location">
         <Panel>
           <Muted>Scratch Web reads and writes the Scratch notes folder configured on this Mac. Browser clients cannot directly choose or open arbitrary Mac folders; use the local setup CLI to change it.</Muted>
@@ -131,7 +131,7 @@ function GeneralSettings({ notesFolder, settings, onChange }: { notesFolder: str
       <Section title="Ignored folders">
         <Panel>
           <Muted>Ignored names are hidden from note lists and search. Keep generated folders such as build outputs out of Scratch Web.</Muted>
-          <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+          <div className="settings-flex-gap" style={{ marginTop: 12 }}>
             <Input value={ignoredDraft} placeholder="folder-name" onChange={setIgnoredDraft} />
             <Button onClick={() => {
               const next = ignoredDraft.trim();
@@ -140,9 +140,9 @@ function GeneralSettings({ notesFolder, settings, onChange }: { notesFolder: str
               setIgnoredDraft("");
             }}>Add</Button>
           </div>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 12 }}>
+          <div className="settings-chip-list">
             {ignored.length === 0 ? <Muted>No custom ignored folders.</Muted> : ignored.map((pattern) => (
-              <button key={pattern} onClick={() => onChange({ ignoredPatterns: ignored.filter((item) => item !== pattern) })} style={chipStyle}>
+              <button key={pattern} onClick={() => onChange({ ignoredPatterns: ignored.filter((item) => item !== pattern) })} className="settings-chip">
                 {pattern}
                 <XIcon style={{ width: 13, height: 13 }} />
               </button>
@@ -187,10 +187,10 @@ function IntegrationsSettings({ settings, onChange, setError }: { settings: Sett
   }, [setError]);
 
   return (
-    <div style={stackStyle}>
+    <div className="settings-stack">
       <Section title="Access">
         <Panel>
-          <div style={panelTitleStyle}>Passcode / auth</div>
+          <div className="settings-panel-title">Passcode / auth</div>
           <Muted>Optional app auth is configured by the local setup CLI. Tailscale keeps Scratch Web private to your Tailnet; enable a passcode if the Tailnet or devices are shared.</Muted>
         </Panel>
       </Section>
@@ -199,7 +199,7 @@ function IntegrationsSettings({ settings, onChange, setError }: { settings: Sett
         <Panel>
           <SettingRow label="Enable Git controls"><Toggle checked={settings?.gitEnabled ?? false} onChange={(gitEnabled) => onChange({ gitEnabled })} /></SettingRow>
           <Muted>Git operations run in your notes folder and always ask before writes or network actions.</Muted>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
+          <div className="settings-flex-gap-wrap-mt">
             <Button onClick={refreshGit}>Refresh</Button>
             <Button onClick={() => runGit("Git init", "Initialize a Git repository in your notes folder?", initGit)}>Init</Button>
             <Button onClick={() => {
@@ -218,7 +218,7 @@ function IntegrationsSettings({ settings, onChange, setError }: { settings: Sett
             }}>Set remote</Button>
             <Button onClick={() => runGit("Push upstream", "Push the current branch and set upstream?", pushGitUpstream)}>Push upstream</Button>
           </div>
-          <div style={{ marginTop: 14 }}>
+          <div className="settings-mt">
             <StatusLine label="Git" value={busy ?? gitInfo} />
             <StatusLine label="Repository" value={gitStatus ? (gitStatus.initialized ? "Initialized" : "Not initialized") : "Unknown"} />
             <StatusLine label="Branch" value={gitStatus?.branch ?? "None"} />
@@ -242,7 +242,7 @@ function AppearanceSettings({ settings, onChange }: { settings: Settings | null;
   };
 
   return (
-    <div style={stackStyle}>
+    <div className="settings-stack">
       <Section title="Theme">
         <Segmented value={settings?.theme.mode ?? "system"} values={["light", "dark", "system"]} onChange={(mode) => onChange({ theme: { mode: mode as "light" | "dark" | "system" } })} />
       </Section>
@@ -261,9 +261,9 @@ function AppearanceSettings({ settings, onChange }: { settings: Settings | null;
       <Section title="Custom colors">
         <Panel>
           <Muted>Colors apply to the current theme mode. System mode stores light colors here; switch to dark to edit dark colors.</Muted>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10, marginTop: 12 }}>
+          <div className="settings-color-grid">
             {colorKeys.map((key) => (
-              <label key={key} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, fontSize: "0.8125rem" }}>
+              <label key={key} className="settings-color-label">
                 <span>{key}</span>
                 <input type="color" value={normalizeColor(colors[key])} onChange={(event) => setColor(key, event.target.value)} />
               </label>
@@ -281,11 +281,11 @@ function ShortcutsSettings() {
 
 function AboutSettings() {
   return (
-    <div style={stackStyle}>
+    <div className="settings-stack">
       <Section title="About Scratch Web">
         <Panel>
-          <p style={paragraphStyle}>Scratch Web is an experimental, independent, unofficial web companion for <a href="https://github.com/erictli/scratch" target="_blank" rel="noopener noreferrer">Scratch</a> by erictli.</p>
-          <p style={paragraphStyle}>Scratch Web would not be possible without Scratch. It keeps the Mac-hosted, local Markdown model and adapts it for phones over Tailscale.</p>
+          <p className="settings-paragraph">Scratch Web is an experimental, independent, unofficial web companion for <a href="https://github.com/erictli/scratch" target="_blank" rel="noopener noreferrer">Scratch</a> by erictli.</p>
+          <p className="settings-paragraph">Scratch Web would not be possible without Scratch. It keeps the Mac-hosted, local Markdown model and adapts it for phones over Tailscale.</p>
         </Panel>
       </Section>
       <Section title="Native-specific behavior">
@@ -302,27 +302,27 @@ function normalizeColor(value: string | undefined): string {
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return <section><h2 style={sectionTitleStyle}>{title}</h2>{children}</section>;
+  return <section className="settings-section"><h2 className="settings-section-title">{title}</h2>{children}</section>;
 }
 
 function Panel({ children }: { children: React.ReactNode }) {
-  return <div style={panelStyle}>{children}</div>;
+  return <div className="settings-panel">{children}</div>;
 }
 
 function Muted({ children }: { children: React.ReactNode }) {
-  return <p style={mutedStyle}>{children}</p>;
+  return <p className="settings-muted">{children}</p>;
 }
 
 function CodeLine({ children }: { children: React.ReactNode }) {
-  return <div style={codeLineStyle}>{children}</div>;
+  return <div className="settings-code-line">{children}</div>;
 }
 
 function SettingRow({ label, help, children }: { label: string; help?: string; children: React.ReactNode }) {
   return (
-    <div style={rowStyle}>
+    <div className="settings-row">
       <div>
-        <div style={{ fontSize: "0.875rem", color: "var(--color-text)", fontWeight: 500 }}>{label}</div>
-        {help && <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", marginTop: 3 }}>{help}</div>}
+        <div className="settings-row-label">{label}</div>
+        {help && <div className="settings-row-help">{help}</div>}
       </div>
       <div>{children}</div>
     </div>
@@ -330,51 +330,33 @@ function SettingRow({ label, help, children }: { label: string; help?: string; c
 }
 
 function StatusLine({ label, value }: { label: string; value: string }) {
-  return <div style={statusLineStyle}><span>{label}</span><span style={{ color: "var(--color-text)", fontFamily: "monospace" }}>{value}</span></div>;
+  return <div className="settings-status-line"><span>{label}</span><span className="settings-status-value">{value}</span></div>;
 }
 
 function Button({ children, onClick }: { children: React.ReactNode; onClick: () => void }) {
-  return <button type="button" onClick={onClick} style={buttonStyle}>{children}</button>;
+  return <button type="button" onClick={onClick} className="settings-button">{children}</button>;
 }
 
 function Input({ value, placeholder, onChange }: { value: string; placeholder?: string; onChange: (value: string) => void }) {
-  return <input value={value} placeholder={placeholder} onChange={(event) => onChange(event.target.value)} style={inputStyle} />;
+  return <input value={value} placeholder={placeholder} onChange={(event) => onChange(event.target.value)} className="settings-input" />;
 }
 
 function NumberInput({ value, min, max, step = 1, onChange }: { value: number; min: number; max: number; step?: number; onChange: (value: number) => void }) {
-  return <input type="number" value={value} min={min} max={max} step={step} onChange={(event) => onChange(Number(event.target.value))} style={{ ...inputStyle, width: 88 }} />;
+  return <input type="number" value={value} min={min} max={max} step={step} onChange={(event) => onChange(Number(event.target.value))} className="settings-input settings-number-input" />;
 }
 
 function Select({ value, values, onChange }: { value: string; values: string[]; onChange: (value: string) => void }) {
-  return <select value={value} onChange={(event) => onChange(event.target.value)} style={inputStyle}>{values.map((item) => <option key={item} value={item}>{item}</option>)}</select>;
+  return <select value={value} onChange={(event) => onChange(event.target.value)} className="settings-select">{values.map((item) => <option key={item} value={item}>{item}</option>)}</select>;
 }
 
 function Segmented({ value, values, onChange }: { value: string; values: string[]; onChange: (value: string) => void }) {
-  return <div style={segmentedStyle}>{values.map((item) => <button key={item} type="button" onClick={() => onChange(item)} style={segmentStyle(value === item)}>{item}</button>)}</div>;
+  return <div className="settings-segmented">{values.map((item) => <button key={item} type="button" onClick={() => onChange(item)} className={`settings-segment ${value === item ? "settings-segment-active" : ""}`}>{item}</button>)}</div>;
 }
 
 function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
-  return <button type="button" onClick={() => onChange(!checked)} style={toggleStyle(checked)}><span style={toggleKnobStyle(checked)} /></button>;
+  return (
+    <button type="button" onClick={() => onChange(!checked)} className={`settings-toggle ${checked ? "settings-toggle-active" : ""}`}>
+      <span className={`settings-toggle-knob ${checked ? "settings-toggle-knob-active" : ""}`} />
+    </button>
+  );
 }
-
-const stackStyle = { display: "flex", flexDirection: "column", gap: 24 } as const;
-const navStyle = { width: 240, height: "100%", backgroundColor: "var(--color-bg-secondary)", borderRight: "1px solid var(--color-border)", display: "flex", flexDirection: "column", flexShrink: 0 } as const;
-const navHeaderStyle = { display: "flex", alignItems: "center", gap: 8, padding: 12, borderBottom: "1px solid var(--color-border)" } as const;
-const iconButtonStyle = { background: "none", border: "none", color: "var(--color-text)", cursor: "pointer", padding: 4, borderRadius: 6 } as const;
-const miniKbdStyle = { fontFamily: "monospace", fontSize: "0.6875rem", color: "var(--color-text-muted)" } as const;
-const sectionTitleStyle = { fontSize: "1.125rem", fontWeight: 600, marginBottom: 12, color: "var(--color-text)" } as const;
-const panelStyle = { padding: 12, borderRadius: 8, border: "1px solid var(--color-border)", backgroundColor: "var(--color-bg-secondary)" } as const;
-const panelTitleStyle = { fontSize: "0.875rem", color: "var(--color-text)", fontWeight: 500, marginBottom: 4 } as const;
-const mutedStyle = { fontSize: "0.8125rem", color: "var(--color-text-muted)", lineHeight: 1.5, margin: 0 } as const;
-const paragraphStyle = { fontSize: "0.875rem", color: "var(--color-text-muted)", lineHeight: 1.6, margin: "0 0 10px" } as const;
-const codeLineStyle = { marginTop: 10, fontSize: "0.8125rem", color: "var(--color-text)", fontFamily: "monospace", wordBreak: "break-all" } as const;
-const rowStyle = { display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, padding: "10px 0", borderBottom: "1px solid var(--color-border)" } as const;
-const statusLineStyle = { display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, padding: "6px 0", fontSize: "0.8125rem", color: "var(--color-text-muted)", borderBottom: "1px solid var(--color-border)" } as const;
-const inputStyle = { padding: "5px 8px", borderRadius: 6, border: "1px solid var(--color-border)", backgroundColor: "var(--color-bg)", color: "var(--color-text)", fontSize: "0.8125rem" } as const;
-const buttonStyle = { background: "var(--color-bg)", border: "1px solid var(--color-border)", borderRadius: 6, color: "var(--color-text)", cursor: "pointer", fontSize: "0.8125rem", padding: "6px 10px" } as const;
-const chipStyle = { display: "inline-flex", alignItems: "center", gap: 6, background: "var(--color-bg-muted)", border: "1px solid var(--color-border)", borderRadius: 6, color: "var(--color-text)", cursor: "pointer", fontSize: "0.8125rem", padding: "5px 8px" } as const;
-const segmentedStyle = { display: "flex", gap: 4, padding: 3, borderRadius: 8, backgroundColor: "var(--color-bg-secondary)", border: "1px solid var(--color-border)" } as const;
-const tabStyle = (active: boolean) => ({ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, padding: "8px 10px", borderRadius: 6, border: "none", backgroundColor: active ? "var(--color-bg-muted)" : "transparent", color: active ? "var(--color-text)" : "var(--color-text-muted)", fontSize: "0.875rem", fontWeight: active ? 500 : 400, cursor: "pointer", textAlign: "left" as const });
-const segmentStyle = (active: boolean) => ({ border: "none", borderRadius: 6, backgroundColor: active ? "var(--color-bg)" : "transparent", color: active ? "var(--color-text)" : "var(--color-text-muted)", cursor: "pointer", fontSize: "0.8125rem", padding: "5px 10px", textTransform: "capitalize" as const });
-const toggleStyle = (checked: boolean) => ({ width: 40, height: 24, borderRadius: 12, border: "none", backgroundColor: checked ? "var(--color-accent)" : "var(--color-bg-muted)", position: "relative" as const, cursor: "pointer", padding: 0 });
-const toggleKnobStyle = (checked: boolean) => ({ width: 20, height: 20, borderRadius: "50%", backgroundColor: "var(--color-bg)", position: "absolute" as const, top: 2, left: checked ? 18 : 2, transition: "left 0.15s" });

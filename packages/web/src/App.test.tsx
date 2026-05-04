@@ -64,12 +64,12 @@ describe("App", () => {
 
     await waitFor(() => expect(screen.queryByText("Initializing Scratch...")).not.toBeInTheDocument());
     const sidebar = document.querySelector(".scratch-sidebar") as HTMLElement;
-    expect(sidebar.style.transform).toBe("translateX(0)");
+    expect(sidebar.classList.contains("sb-sidebar-open")).toBe(true);
 
     fireEvent.click(screen.getByText("A"));
 
     await waitFor(() => expect(api.readNote).toHaveBeenCalledWith("a"));
     await waitFor(() => expect(document.querySelector(".ProseMirror")).toBeInTheDocument());
-    expect(sidebar.style.transform).toBe("translateX(-100%)");
+    expect(sidebar.classList.contains("sb-sidebar-open")).toBe(false);
   });
 });

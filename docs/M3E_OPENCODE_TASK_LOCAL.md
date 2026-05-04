@@ -1,6 +1,6 @@
 # M3E OpenCode Task, Repo-Local Version
 
-You are working in `[LOCAL_PATH]`.
+You are working in `<repo-root>`.
 
 Do not read files outside this repo. The broader AGENTS guidance needed for
 this task is embedded below:

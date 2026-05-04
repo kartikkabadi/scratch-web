@@ -11,9 +11,13 @@ aims to make available from mobile browsers.
 
 - Repository: https://github.com/erictli/scratch
 - Author: erictli
-- License observation: the upstream README states MIT.
-- Standalone upstream LICENSE file: not present in the inspected clone.
+- License observation verified 2026-05-04: the upstream README License section
+  states MIT.
+- Standalone upstream LICENSE file verified 2026-05-04: not present on `main`
+  (`https://raw.githubusercontent.com/erictli/scratch/main/LICENSE` returns
+  404).
 - Reference commit: `6d443e9a6eb3e0742d84c2b5abdca46a0270f7c7`
+- Default branch pushed at verification time: 2026-04-03T15:16:33Z.
 
 ## Project Relationship
 

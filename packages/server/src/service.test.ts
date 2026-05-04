@@ -105,8 +105,13 @@ test("delete creates backup and symlink writes are rejected", async () => {
   await writeFile(outside, "# Outside");
   const linkPath = path.join(notesRoot, "Linked.md");
   await symlink(outside, linkPath);
+  await assert.rejects(bridge.readNote("Linked"), /Symlink/u);
   await assert.rejects(
-    bridge.saveNote({ id: "Linked", content: "# Linked\n\nOops", expectedVersion: await bridge.readNote("Linked").then((n) => n.version) }),
+    bridge.saveNote({
+      id: "Linked",
+      content: "# Linked\n\nOops",
+      expectedVersion: { mtimeMs: 0, size: 0, sha256: "invalid" }
+    }),
     /Symlink/u
   );
 });

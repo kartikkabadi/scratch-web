@@ -1,12 +1,12 @@
 # M3E OpenCode Task
 
-You are working in `[LOCAL_PATH]`.
+You are working in `<repo-root>`.
 
 ## Mandatory Reading
 
 Read these before changing code:
 
-- `[LOCAL_PATH]`
+- the local workspace `AGENTS.md`, if present
 - `SEED.md`
 - `docs/SCRATCH_PARITY_INVENTORY.md`
 - `docs/FRONTEND_OPENCODE_BRIEF.md`
@@ -22,10 +22,10 @@ Read these before changing code:
 
 Invoke and follow these local skills:
 
-- `[LOCAL_PATH]`
-- `[LOCAL_PATH]`
-- `[LOCAL_PATH]`
-- `[LOCAL_PATH]`
+- `<local-skills>/design-taste-frontend/SKILL.md`
+- `<local-skills>/redesign-existing-projects/SKILL.md`
+- `<local-skills>/image-to-code/SKILL.md`
+- `<local-skills>/minimalist-ui/SKILL.md`
 
 Interpretation: use these for fidelity, state coverage, mobile ergonomics,
 and de-slopifying. Do not redesign Scratch into a different product. Do not
