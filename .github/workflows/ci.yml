@@ -22,7 +22,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Setup Socket Firewall
-        uses: socketdev/action@v1.3.1
+        uses: socketdev/action@v1.3.2
         with:
           mode: firewall-free
 
