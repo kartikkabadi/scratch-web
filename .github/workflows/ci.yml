@@ -21,6 +21,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Setup Socket Firewall
+        uses: socketdev/action@v1.3.1
+        with:
+          mode: firewall-free
+
       - name: Setup pnpm
         uses: pnpm/action-setup@v6
         with:
@@ -34,7 +39,7 @@ jobs:
           cache: pnpm
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: sfw pnpm install --frozen-lockfile
 
       - name: Typecheck
         run: pnpm check
