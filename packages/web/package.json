@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@scratch-web/shared": "workspace:*",
-    "@tiptap/core": "^3.19.0",
+    "@tiptap/core": "^3.30.5",
     "@tiptap/extension-code-block-lowlight": "^3.20.0",
     "@tiptap/extension-image": "^3.18.0",
     "@tiptap/extension-link": "^3.18.0",
